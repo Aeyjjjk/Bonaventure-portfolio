@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Digital Forensics &amp; Cyber Investigations Portfolio</title>
+<meta name="description" content="Digital forensics portfolio: computer, Windows, mobile, browser, IoT and cloud investigations using Magnet AXIOM, Cellebrite, X-Ways and Python. Academic forensic case studies.">
+<meta property="og:title" content="Digital Forensics &amp; Cyber Investigations Portfolio"><meta property="og:description" content="Digital forensics portfolio: computer, Windows, mobile, browser, IoT and cloud investigations using Magnet AXIOM, Cellebrite, X-Ways and Python. Academic forensic case studies."><meta property="og:type" content="website"><meta property="og:image" content="https://YOUR-DOMAIN.example/assets/img/og.png"><meta property="og:url" content="https://YOUR-DOMAIN.example/index.html"><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://YOUR-DOMAIN.example/index.html"><meta name="theme-color" content="#0B1020">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>/* Layout concept: dark editorial forensics. Asymmetric 12-col grid, mono "exhibit" labels, evidence panels with corner ticks, teal = analysis, amber = evidence markers. */
+:root{
+  --bg:#0B1020; --bg2:#111A2C; --card:#172238; --fg:#F4F5F7; --fg2:#A5AFBF;
+  --teal:#27C6B0; --amber:#F0A45D; --line:#26344B; --grid:#1D2B40; --ink:#06101a;
+  --f-head:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+  --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --maxw:1240px; --gut:max(20px,env(safe-area-inset-left,0px)); --gutr:max(20px,env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17px/1.65 var(--f-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--teal);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#5eead4}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:2px}
+h1,h2,h3,h4{font-family:var(--f-head);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0 0 1em;max-width:68ch}
+.skip{position:absolute;left:-999px;top:8px;background:var(--teal);color:var(--ink);padding:8px 14px;z-index:100;font-weight:600}
+.skip:focus{left:8px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--gut);padding-right:var(--gutr)}
+.mono{font-family:var(--f-mono)}
+.label{font:500 12.5px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg2)}
+.label.t{color:var(--teal)} .label.a{color:var(--amber)}
+.grid-bg{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;background-position:-1px -1px}
+.grid-fade{position:relative;isolation:isolate}
+.grid-fade::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.55;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 85%);mask-image:linear-gradient(to bottom,#000 0%,transparent 85%)}
+
+/* progress + header */
+.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--teal);z-index:60}
+header.site{position:sticky;top:0;z-index:50;background:rgba(11,16,32,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:28px;height:68px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--fg);text-decoration:none;margin-right:auto}
+.brand svg{flex:none}
+.brand b{display:block;font:600 15px/1.1 var(--f-head);letter-spacing:.02em}
+.brand i{display:block;font:500 10.5px/1.3 var(--f-mono);letter-spacing:.12em;color:var(--fg2);text-transform:uppercase;font-style:normal;margin-top:3px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:block;padding:10px 12px;color:var(--fg2);text-decoration:none;font-size:15px;font-weight:500;border-radius:3px}
+.nav ul a:hover,.nav ul a[aria-current]{color:var(--fg)}
+.nav ul a[aria-current]{box-shadow:inset 0 -2px 0 var(--teal)}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border:1px solid var(--teal);background:var(--teal);color:var(--ink);font:600 13px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:background .2s,color .2s,transform .2s}
+.btn:hover{background:transparent;color:var(--teal)}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
+.btn.sm{min-height:38px;padding:0 14px;font-size:12px}
+.btn svg{width:15px;height:15px;flex:none}
+.menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--fg);width:46px;height:46px;cursor:pointer}
+@media(max-width:900px){
+  .menu-btn{display:grid;place-items:center}
+  .nav{gap:12px}
+  .nav ul{position:fixed;inset:68px 0 auto 0;flex-direction:column;background:var(--bg2);border-bottom:1px solid var(--line);padding:12px var(--gutr) 20px var(--gut);gap:0;transform:translateY(-8px);opacity:0;visibility:hidden;transition:.2s}
+  .nav ul.open{transform:none;opacity:1;visibility:visible}
+  .nav ul a{padding:16px 0;font-size:18px;border-bottom:1px solid var(--line);border-radius:0}
+  .nav .btn.cv{display:none}
+  .nav ul .cv-m{display:block}
+}
+.cv-m{display:none}
+
+/* sections */
+section{padding-block:clamp(72px,9vw,128px)}
+.sec-head{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;margin-bottom:clamp(36px,5vw,64px);align-items:end}
+.sec-head .label{grid-column:1/-1}
+.sec-head h2{grid-column:1/9;font-size:clamp(34px,4.6vw,60px)}
+.sec-head p{grid-column:9/-1;color:var(--fg2);font-size:16px;margin:0}
+@media(max-width:900px){.sec-head h2,.sec-head p{grid-column:1/-1}}
+.alt{background:var(--bg2);border-block:1px solid var(--line)}
+
+/* hero */
+.hero{padding-top:clamp(48px,7vw,96px);padding-bottom:clamp(56px,7vw,96px)}
+.hero-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px;align-items:center}
+.hero-copy{grid-column:1/8}
+.hero h1{font-size:clamp(44px,7.6vw,104px);font-weight:700;letter-spacing:-.035em;text-transform:uppercase;line-height:.95}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero .lede{font-size:clamp(17px,1.5vw,20px);color:var(--fg2);margin:28px 0 36px;max-width:56ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:14px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:44px;padding-top:20px;border-top:1px solid var(--line)}
+.hero-meta span{font:500 12px/1.5 var(--f-mono);letter-spacing:.1em;color:var(--fg2);text-transform:uppercase}
+.hero-meta b{color:var(--amber);font-weight:500}
+.hero-vis{grid-column:8/-1;position:relative}
+@media(max-width:1000px){.hero-copy,.hero-vis{grid-column:1/-1}.hero-vis{max-width:560px}}
+.scene{position:relative;aspect-ratio:4/5;border:1px solid var(--line);background:var(--bg2);overflow:hidden}
+.scene svg.ov{position:absolute;inset:0;width:100%;height:100%}
+.scene .photo{position:absolute;left:11%;right:11%;top:19%;bottom:27%;border:1px solid var(--amber);background:#000}
+.scene .photo img{width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;font:500 10.5px/1.4 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);background:rgba(11,16,32,.88);padding:4px 8px;border:1px solid var(--line)}
+.tag.am{color:var(--amber);border-color:rgba(240,164,93,.5)}
+.tag.te{color:var(--teal);border-color:rgba(39,198,176,.45)}
+@keyframes rise{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hero .hero-copy>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) backwards}
+.hero .hero-copy>*:nth-child(2){animation-delay:.08s}.hero .hero-copy>*:nth-child(3){animation-delay:.16s}.hero .hero-copy>*:nth-child(4){animation-delay:.24s}
+
+/* intro */
+.intro{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px}
+.intro h2{grid-column:1/7;font-size:clamp(32px,4vw,52px)}
+.intro .body{grid-column:7/-1}
+.intro .body p{font-size:18px;color:var(--fg2)}
+.intro .body p:first-child{color:var(--fg)}
+.pillars{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);margin-top:24px}
+.pillars div{padding:22px 22px 26px;border-right:1px solid var(--line)}
+.pillars div:last-child{border-right:0}
+.pillars b{display:block;font:600 19px/1.2 var(--f-head);margin:10px 0 6px}
+.pillars span{color:var(--fg2);font-size:15px;line-height:1.5}
+@media(max-width:900px){.intro h2,.intro .body{grid-column:1/-1}.pillars{grid-template-columns:1fr 1fr}.pillars div:nth-child(2){border-right:0}.pillars div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media(max-width:520px){.pillars{grid-template-columns:1fr}.pillars div{border-right:0;border-bottom:1px solid var(--line)}.pillars div:last-child{border-bottom:0}}
+
+/* filter + project cards */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.chip{min-height:40px;padding:0 16px;background:transparent;border:1px solid var(--line);color:var(--fg2);font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.chip:hover{color:var(--fg);border-color:var(--fg2)}
+.chip[aria-pressed="true"]{background:var(--teal);color:var(--ink);border-color:var(--teal)}
+.cards{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.card{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--fg);overflow:hidden;transition:border-color .25s,transform .25s}
+.card:hover{border-color:var(--teal);transform:translateY(-3px);color:var(--fg)}
+.card[hidden]{display:none}
+.card .thumb{position:relative;background:var(--ink);border-bottom:1px solid var(--line);overflow:hidden}
+.card .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.card:hover .thumb img{transform:scale(1.03)}
+.card .thumb .ref{position:absolute;left:12px;top:12px}
+.card .txt{padding:24px 26px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card h3{font-size:clamp(22px,2vw,28px)}
+.card p{color:var(--fg2);font-size:15.5px;margin:0}
+.card .cat{font:500 12px/1.4 var(--f-mono);letter-spacing:.08em;color:var(--teal);text-transform:uppercase}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+.tools span{font:500 11.5px/1 var(--f-mono);color:var(--fg2);border:1px solid var(--line);padding:6px 8px}
+.view{margin-top:6px;display:inline-flex;align-items:center;gap:10px;font:600 12.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.view svg{width:16px;transition:transform .25s}.card:hover .view svg{transform:translateX(5px)}
+.card.c1{grid-column:1/-1;display:grid;grid-template-columns:1.25fr 1fr}
+.card.c1 .thumb{border-bottom:0;border-right:1px solid var(--line);min-height:380px}
+.card.c1 .txt{padding:38px 40px;justify-content:center}
+.card.c1 h3{font-size:clamp(28px,3.4vw,46px)}
+.card.c2,.card.c3,.card.c4{grid-column:span 4}
+.card.c2 .thumb,.card.c3 .thumb,.card.c4 .thumb{aspect-ratio:16/10}
+@media(max-width:960px){.card.c1{grid-template-columns:1fr}.card.c1 .thumb{min-height:0;aspect-ratio:16/10;border-right:0;border-bottom:1px solid var(--line)}.card.c1 .txt{padding:26px}.card.c2,.card.c3,.card.c4{grid-column:1/-1}}
+@media(min-width:620px) and (max-width:960px){.card.c2,.card.c3,.card.c4{grid-column:span 6}.card.c4{grid-column:1/-1}}
+.thumb.art{display:grid;place-items:center;background:linear-gradient(180deg,#0d1730,#0a1224)}
+.thumb.art svg{width:100%;height:100%}
+
+/* competencies */
+.comp{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:var(--bg)}
+.comp div{padding:30px 28px 34px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.comp div:nth-child(3n){border-right:0}.comp div:nth-last-child(-n+3){border-bottom:0}
+.comp svg{width:34px;height:34px;color:var(--teal);margin-bottom:18px}
+.comp h3{font-size:22px;margin-bottom:8px}
+.comp p{font-size:15.5px;color:var(--fg2);margin:0}
+@media(max-width:900px){.comp{grid-template-columns:1fr 1fr}.comp div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}.comp div:nth-child(2n){border-right:0!important}.comp div:nth-last-child(-n+2){border-bottom:0!important}}
+@media(max-width:560px){.comp{grid-template-columns:1fr}.comp div{border-right:0!important}.comp div:last-child{border-bottom:0!important}.comp div:nth-last-child(2){border-bottom:1px solid var(--line)!important}}
+
+/* methodology */
+.method{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);position:relative}
+.method button{position:relative;text-align:left;background:none;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 18px 22px;color:var(--fg2);cursor:pointer;font:inherit}
+.method button:last-child{border-right:0}
+.method button .n{font:500 12px/1 var(--f-mono);color:var(--fg2);letter-spacing:.1em}
+.method button b{display:block;font:600 22px/1.1 var(--f-head);color:var(--fg);margin-top:14px}
+.method button::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:0;background:var(--teal);transition:width .35s}
+.method button[aria-selected="true"]{background:var(--card);color:var(--fg)}
+.method button[aria-selected="true"]::before{width:100%}
+.method button[aria-selected="true"] .n{color:var(--teal)}
+.method-panel{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:28px;padding:34px 0 0;min-height:170px}
+.method-panel h3{grid-column:1/5;font-size:30px}
+.method-panel p{grid-column:5/-1;color:var(--fg2);font-size:18px;margin:0}
+.note{font:400 13.5px/1.55 var(--f-mono);color:var(--fg2);margin-top:28px;border-left:2px solid var(--amber);padding-left:14px;max-width:80ch}
+@media(max-width:900px){.method{grid-template-columns:repeat(3,1fr)}.method button:nth-child(3){border-right:0}.method-panel h3,.method-panel p{grid-column:1/-1}}
+@media(max-width:520px){.method{grid-template-columns:1fr 1fr}.method button:nth-child(3){border-right:1px solid var(--line)}.method button:nth-child(2n){border-right:0}}
+
+/* about */
+.about{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:40px}
+.portrait{grid-column:1/5;align-self:start;position:sticky;top:100px}
+.portrait .frame{aspect-ratio:4/5;border:1px dashed var(--fg2);display:grid;place-items:center;text-align:center;color:var(--fg2);padding:20px;background:var(--bg2);position:relative}
+.portrait .frame span{font:500 12px/1.6 var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.about-copy{grid-column:6/-1}
+.about-copy .open p{font:500 clamp(20px,2.1vw,26px)/1.45 var(--f-head);color:var(--fg);letter-spacing:-.01em}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:36px 0}
+.dl div{padding:22px 24px;border-bottom:1px solid var(--line)}
+.dl div:nth-child(odd){border-right:1px solid var(--line)}
+.dl div:nth-last-child(-n+2){border-bottom:0}
+.dl h4{font:500 12px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.dl ul{margin:0;padding-left:18px;color:var(--fg2);font-size:15.5px}
+.dl li{margin:3px 0}
+.ph{color:var(--amber);font-family:var(--f-mono);font-size:.9em}
+@media(max-width:900px){.portrait{grid-column:1/-1;position:static;max-width:340px}.about-copy{grid-column:1/-1}.dl{grid-template-columns:1fr}.dl div{border-right:0!important}.dl div:nth-last-child(-n+2){border-bottom:1px solid var(--line)}.dl div:last-child{border-bottom:0}}
+
+/* skills */
+.skillgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.skillcat{grid-column:span 6;border:1px solid var(--line);background:var(--card);padding:28px}
+.skillcat:nth-child(5){grid-column:1/-1}
+.skillcat h3{font-size:24px;margin:6px 0 4px}
+.skillcat>p{color:var(--fg2);font-size:15px;margin:0 0 18px}
+.tl{display:flex;flex-wrap:wrap;gap:8px}
+.tool{background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:10px 14px;font:500 13.5px/1.2 var(--f-body);cursor:pointer;text-align:left;transition:.2s}
+.tool:hover{border-color:var(--teal)}
+.tool[aria-expanded="true"]{border-color:var(--teal);background:rgba(39,198,176,.1)}
+.tooldesc{margin-top:14px;padding:16px 18px;border-left:2px solid var(--teal);background:var(--bg);color:var(--fg2);font-size:15px;min-height:60px}
+.tooldesc b{color:var(--fg)}
+@media(max-width:900px){.skillcat{grid-column:1/-1}}
+
+/* contact */
+.contact{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:48px}
+.contact h2{grid-column:1/8;font-size:clamp(34px,5vw,68px)}
+.contact .ways{grid-column:1/6}
+.contact form{grid-column:7/-1;grid-row:2;border:1px solid var(--line);background:var(--card);padding:30px}
+.ways dl{margin:28px 0 0;display:grid;gap:0}
+.ways dl div{display:flex;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.ways dt{font:500 12px/1.6 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.ways dd{margin:0;font:500 15px/1.5 var(--f-mono);color:var(--amber)}
+.ways dd a{color:var(--amber)}
+.field{display:grid;gap:8px;margin-bottom:18px}
+.field label{font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:13px 14px;font:400 16px/1.4 var(--f-body);border-radius:0}
+.field textarea{min-height:130px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:2px solid var(--teal);outline-offset:0;border-color:var(--teal)}
+.field .err{display:none;color:var(--amber);font:500 12.5px/1.4 var(--f-mono)}
+.field.bad .err{display:block}.field.bad input,.field.bad textarea{border-color:var(--amber)}
+.formnote{font:400 12.5px/1.55 var(--f-mono);color:var(--fg2);margin:16px 0 0}
+.confirm{border:1px solid var(--teal);padding:20px;background:rgba(39,198,176,.07);display:none}
+.confirm.show{display:block}
+@media(max-width:900px){.contact h2,.contact .ways,.contact form{grid-column:1/-1;grid-row:auto}}
+
+/* footer */
+footer.site{border-top:1px solid var(--line);background:var(--bg2);padding-block:64px 36px}
+.foot{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:36px}
+.foot .about-f{grid-column:1/5}
+.foot .col{grid-column:span 2}
+.foot .col:nth-child(2){grid-column:6/8}
+.foot h4{font:500 12px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg2);margin-bottom:14px}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot a{color:var(--fg);text-decoration:none;font-size:15px}.foot a:hover{color:var(--teal)}
+.foot .big{font:600 22px/1.2 var(--f-head)}
+.foot-bot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:56px;padding-top:22px;border-top:1px solid var(--line);font:400 13px/1.5 var(--f-mono);color:var(--fg2)}
+.foot-bot em{font-style:normal;color:var(--teal);letter-spacing:.1em}
+@media(max-width:900px){.foot .about-f{grid-column:1/-1}.foot .col,.foot .col:nth-child(2){grid-column:span 6}}
+
+/* ---------- case study ---------- */
+.cs-hero{padding-top:clamp(40px,6vw,80px);padding-bottom:clamp(40px,5vw,72px);border-bottom:1px solid var(--line)}
+.crumbs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.crumbs a{color:var(--fg2);text-decoration:none}.crumbs a:hover{color:var(--teal)}
+.cs-hero h1{font-size:clamp(34px,5.6vw,80px);text-transform:uppercase;letter-spacing:-.03em;line-height:1;max-width:18ch}
+.cs-hero .sub{font-size:clamp(18px,1.8vw,23px);color:var(--fg2);margin:24px 0 0;max-width:60ch}
+.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.badge{font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:9px 12px;border:1px solid var(--amber);color:var(--amber)}
+.cs-hero-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:40px;align-items:end}
+.cs-hero-grid>div:first-child{grid-column:1/8}
+.cs-hero-grid>div:last-child{grid-column:8/-1}
+@media(max-width:960px){.cs-hero-grid>div{grid-column:1/-1!important}}
+.cs{display:grid;grid-template-columns:230px minmax(0,1fr);gap:56px;padding-top:56px}
+.toc{position:sticky;top:96px;align-self:start;max-height:calc(100vh - 120px);overflow:auto}
+.toc ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc a{display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:2px solid transparent;color:var(--fg2);text-decoration:none;font-size:13.5px;line-height:1.35}
+.toc a:hover{color:var(--fg)}
+.toc a.on{color:var(--teal);border-left-color:var(--teal)}
+.toc a span{font-family:var(--f-mono);font-size:11px;color:var(--fg2);margin-right:8px}
+@media(max-width:1020px){.cs{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+.cs-sec{padding-block:0 clamp(56px,7vw,92px);scroll-margin-top:90px}
+.cs-sec>header{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;padding-top:26px;border-top:1px solid var(--line)}
+.cs-sec>header .label{flex:none}
+.cs-sec h2{font-size:clamp(28px,3.2vw,42px)}
+.cs-sec h3{font-size:22px;margin:32px 0 10px}
+.cs-sec p,.cs-sec li{color:var(--fg2)}
+.cs-sec p strong,.cs-sec li strong{color:var(--fg);font-weight:600}
+.cs-sec ul{padding-left:20px;max-width:70ch}.cs-sec li{margin:6px 0}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--line);margin:8px 0 0}
+.kv div{padding:18px 20px;border-bottom:1px solid var(--line)}
+.kv div:nth-child(odd){border-right:1px solid var(--line)}
+.kv div:nth-last-child(-n+2){border-bottom:0}
+.kv dt{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.kv dd{margin:0;color:var(--fg);font-size:16px;line-height:1.5}
+@media(max-width:700px){.kv{grid-template-columns:1fr}.kv div{border-right:0!important}.kv div:nth-last-child(2){border-bottom:1px solid var(--line)}}
+.q{border-left:3px solid var(--teal);padding:6px 0 6px 24px;margin:8px 0;font:500 clamp(21px,2.4vw,30px)/1.35 var(--f-head);color:var(--fg);max-width:34em;letter-spacing:-.01em}
+.status{display:inline-block;font:500 10.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;margin-right:8px;vertical-align:2px;border:1px solid}
+.s-conf{color:var(--teal);border-color:var(--teal)}
+.s-rec{color:var(--teal);border-color:rgba(39,198,176,.45);background:rgba(39,198,176,.08)}
+.s-pot{color:var(--amber);border-color:var(--amber)}
+.s-int{color:var(--fg2);border-color:var(--fg2)}
+.s-hyp{color:#c7b8ff;border-color:#8f7fd6}
+.s-lim{color:var(--amber);border-color:rgba(240,164,93,.45);background:rgba(240,164,93,.08)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 24px;padding:14px 16px;border:1px solid var(--line);background:var(--bg2);font-size:13px;color:var(--fg2)}
+.legend .status{margin-right:6px}
+.findlist{list-style:none;padding:0!important;display:grid;gap:0;border:1px solid var(--line);max-width:none!important}
+.findlist li{margin:0;padding:16px 20px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:128px 1fr;gap:16px;align-items:start}
+.findlist li:last-child{border-bottom:0}
+.findlist .status{margin:0;justify-self:start}
+@media(max-width:600px){.findlist li{grid-template-columns:1fr;gap:8px}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--line);margin:24px 0}
+.stats div{padding:20px 22px;border-right:1px solid var(--line)}
+.stats div:last-child{border-right:0}
+.stats b{display:block;font:600 clamp(30px,3.4vw,46px)/1 var(--f-head);color:var(--fg);font-variant-numeric:tabular-nums}
+.stats span{display:block;margin-top:8px;font:500 11.5px/1.45 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg2)}
+.stats .am b{color:var(--amber)}.stats .te b{color:var(--teal)}
+.panel{border:1px solid var(--line);background:var(--bg2);position:relative;margin:24px 0}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--amber);pointer-events:none}
+.panel::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.panel>.ph-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 16px;border-bottom:1px solid var(--line);font:500 11.5px/1.4 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
+.panel>.ph-bar b{color:var(--amber);font-weight:500}
+.panel .pb{padding:22px}
+.panel figcaption,.panel .cap{padding:12px 16px 16px;border-top:1px solid var(--line);font-size:14px;color:var(--fg2);line-height:1.55}
+.reconstruction{color:var(--teal)!important}
+.diagram{width:100%;height:auto;display:block}
+.dscroll{overflow-x:auto}
+.dscroll .diagram{min-width:640px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.shot{background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;margin:0}
+.shot button{display:block;position:relative;background:#05080f;border:0;padding:0;cursor:zoom-in;aspect-ratio:16/10;overflow:hidden;width:100%}
+.shot button img{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.shot button::after{content:"Enlarge";position:absolute;right:10px;bottom:10px;font:500 10.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;background:rgba(11,16,32,.9);color:var(--teal);padding:6px 8px;border:1px solid var(--line);opacity:0;transition:.2s}
+.shot button:hover::after,.shot button:focus-visible::after{opacity:1}
+.shot figcaption{padding:12px 14px 14px;font-size:13.5px;color:var(--fg2);line-height:1.5}
+.shot figcaption b{display:block;font:500 11px/1.4 var(--f-mono);letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:4px}
+.hero-shot{margin:0;background:var(--bg2);border:1px solid var(--line);position:relative}
+.hero-shot img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.hero-shot figcaption{padding:12px 14px;font:500 11px/1.5 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hero-shot figcaption b{color:var(--amber);font-weight:500}
+details.x{border:1px solid var(--line);background:var(--bg2);margin:12px 0}
+details.x summary{cursor:pointer;padding:16px 20px;font:600 17px/1.35 var(--f-head);color:var(--fg);list-style:none;display:flex;justify-content:space-between;gap:16px;align-items:center}
+details.x summary::-webkit-details-marker{display:none}
+details.x summary::after{content:"+";font:400 24px/1 var(--f-mono);color:var(--teal);flex:none}
+details.x[open] summary::after{content:"\2212"}
+details.x[open] summary{border-bottom:1px solid var(--line)}
+details.x .xb{padding:18px 20px}
+details.x .xb p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;border:1px solid var(--line);margin:20px 0}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--fg2)}
+th{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg);background:var(--bg2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td:first-child{color:var(--fg);font-weight:500}
+td.y{color:var(--teal)}td.n{color:var(--fg2);opacity:.75}td.p{color:var(--amber)}
+.dvs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:24px 0}
+.dvs>div{padding:30px 30px 34px}
+.dvs>div+div{border-left:1px solid var(--line)}
+.dvs h3{margin:8px 0 6px;font-size:clamp(28px,3vw,40px);text-transform:uppercase}
+.dvs .big{font:500 clamp(18px,1.7vw,22px)/1.35 var(--f-head);color:var(--fg);margin:0 0 18px}
+.dvs ul{margin:0;padding-left:18px}
+.dot{background:linear-gradient(180deg,rgba(39,198,176,.09),transparent 60%)}
+.show{background:linear-gradient(180deg,rgba(240,164,93,.09),transparent 60%)}
+@media(max-width:760px){.dvs{grid-template-columns:1fr}.dvs>div+div{border-left:0;border-top:1px solid var(--line)}}
+.flow{list-style:none;padding:0!important;margin:20px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0;border:1px solid var(--line);counter-reset:s;max-width:none!important}
+.flow li{margin:0!important;padding:18px 18px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);counter-increment:s;font-size:14.5px;line-height:1.5;margin:0}
+.flow li::before{content:counter(s,decimal-leading-zero);display:block;font:500 12px/1 var(--f-mono);letter-spacing:.1em;color:var(--amber);margin-bottom:10px}
+.flow li b{display:block;color:var(--fg);font:600 16.5px/1.25 var(--f-head);margin-bottom:6px}
+.skills-demo{display:flex;flex-wrap:wrap;gap:8px}
+.skills-demo span{border:1px solid var(--line);padding:8px 12px;font:500 12.5px/1 var(--f-mono);color:var(--fg);background:var(--bg2)}
+.takeaway{border:1px solid var(--teal);background:linear-gradient(135deg,rgba(39,198,176,.1),transparent 70%);padding:clamp(28px,4vw,52px);margin-top:8px}
+.takeaway p{color:var(--fg);font:500 clamp(21px,2.3vw,30px)/1.4 var(--f-head);letter-spacing:-.01em;max-width:36em;margin-bottom:16px}
+.takeaway small{display:block;color:var(--fg2);font-size:14.5px;line-height:1.55;max-width:64ch}
+.next{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin-top:20px}
+.next a{display:block;padding:32px 30px;text-decoration:none;color:var(--fg);transition:background .25s}
+.next a+a{border-left:1px solid var(--line);text-align:right}
+.next a:hover{background:var(--card)}
+.next b{display:block;font:600 clamp(20px,2.2vw,28px)/1.15 var(--f-head);margin-top:10px}
+@media(max-width:700px){.next{grid-template-columns:1fr}.next a+a{border-left:0;border-top:1px solid var(--line);text-align:left}}
+.note-box{border:1px solid var(--line);border-left:3px solid var(--amber);padding:14px 18px;margin:18px 0;background:var(--bg2);font-size:15px;color:var(--fg2)}
+.note-box b{color:var(--amber);font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:100;background:rgba(5,8,15,.94);display:none;flex-direction:column;padding:max(16px,env(safe-area-inset-top,0px)) var(--gutr) max(16px,env(safe-area-inset-bottom,0px)) var(--gut)}
+.lb.open{display:flex}
+.lb-bar{display:flex;align-items:center;gap:12px;justify-content:space-between;padding-bottom:12px}
+.lb-bar .cnt{font:500 12px/1 var(--f-mono);color:var(--fg2);letter-spacing:.1em}
+.lb-btns{display:flex;gap:8px}
+.lb button{min-width:46px;min-height:46px;background:var(--bg2);border:1px solid var(--line);color:var(--fg);font:500 14px/1 var(--f-mono);cursor:pointer;padding:0 14px}
+.lb button:hover{border-color:var(--teal);color:var(--teal)}
+.lb-stage{flex:1;min-height:0;display:grid;place-items:center;overflow:auto}
+.lb-stage img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.lb-stage img.nat{max-width:none;max-height:none}
+.lb-cap{padding-top:12px;color:var(--fg2);font-size:14.5px;max-width:90ch}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--amber);color:var(--fg);padding:12px 18px;font:500 13px/1.4 var(--f-mono);opacity:0;pointer-events:none;transition:.25s;z-index:120;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{header.site,.toc,.progress,.lb{display:none}}
+
+.hero-grid>*,.about>*,.intro>*,.contact>*,.sec-head>*,.cs-hero-grid>*,.cards>*,.skillgrid>*,.foot>*,.cs>div{min-width:0}
+@media(max-width:900px){.hero-grid,.about,.intro,.contact,.sec-head,.cs-hero-grid,.cards,.skillgrid,.foot{column-gap:0}}
+.panel,.shot,.tbl,.kv,.stats{min-width:0;max-width:100%}
+@media(max-width:520px){.scene .tag{font-size:9.5px;padding:3px 6px}.scene .tag:nth-of-type(3){display:none}.scene .tag:nth-of-type(4){left:11%;right:auto;bottom:20%}}
+
+header.site{top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
+</style></head><body>
+<a class="skip" href="#main">Skip to content</a><div class="progress" aria-hidden="true"></div>
+<header class="site"><div class="wrap nav">
+<a class="brand" href="#top" aria-label="Digital Forensics and Cyber Investigations, home"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28" stroke="#F0A45D" stroke-width="2"/><text x="20" y="25.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="500" font-size="14" fill="#27C6B0">DF</text></svg><span><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span></a>
+<ul id="navlist"><li><a href="#top">Home</a></li><li><a href="#about">About</a></li><li><a href="#investigations">Investigations</a></li><li><a href="#skills">Skills</a></li><li><a href="#contact">Contact</a></li><li class="cv-m"><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul>
+<a class="btn sm cv" href="assets/downloads/CV.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a>
+<button class="menu-btn" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
+</div></header><main id="main"><section class="hero grid-fade" id="top" aria-labelledby="h1" style="padding-block:clamp(48px,7vw,96px)"><div class="wrap hero-grid">
+<div class="hero-copy">
+<p class="label t">Digital Forensics &amp; Cyber Investigations</p>
+<h1 id="h1">Digital evidence.<br><em>Beyond the surface.</em></h1>
+<p class="lede">Exploring the intersection of digital forensics, cyber investigations and emerging connected technologies through structured investigation and evidence-led research.</p>
+<div class="cta-row"><a class="btn" href="#investigations">Explore investigations <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></a><a class="btn ghost" href="#" data-soon="The portfolio PDF is not exported yet. It will be linked here once supplied.">Download portfolio</a></div>
+<div class="hero-meta"><span><b>04</b> investigations</span><span><b>05</b> evidence domains</span><span>Academic forensic case studies</span></div>
+</div>
+<div class="hero-vis"><div class="scene" role="group" aria-label="Evidence composition with a project photograph of an Echo Dot and an Echo Show">
+<svg class="ov" viewBox="0 0 400 500" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="0" x2="0" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="500" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="400" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="400" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="400" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="400" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="400" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="400" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="400" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="400" y2="280" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="320" x2="400" y2="320" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="360" x2="400" y2="360" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="400" x2="400" y2="400" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="440" x2="400" y2="440" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="480" x2="400" y2="480" stroke="#1D2B40" stroke-width="1" /><g stroke="#27C6B0" stroke-width="1.2" fill="none"><path d="M20 40V20h20M360 20h20v20M380 460v20h-20M40 480H20v-20"/></g><line x1="200" y1="0" x2="200" y2="500" stroke="#2a4a5c" stroke-width="1" stroke-dasharray="2 6"/><line x1="0" y1="250" x2="400" y2="250" stroke="#2a4a5c" stroke-width="1" stroke-dasharray="2 6"/><circle cx="200" cy="250" r="86" stroke="#27C6B0" stroke-width="1" fill="none" opacity=".35"/><circle cx="200" cy="250" r="140" stroke="#27C6B0" stroke-width="1" fill="none" opacity=".18"/><line x1="0" y1="0" x2="0" y2="8" stroke="#A5AFBF" stroke-width="1" /><line x1="0" y1="500" x2="0" y2="492" stroke="#A5AFBF" stroke-width="1" /><line x1="20" y1="0" x2="20" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="20" y1="500" x2="20" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="40" y1="500" x2="40" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="60" y1="0" x2="60" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="60" y1="500" x2="60" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="80" y1="500" x2="80" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="100" y1="0" x2="100" y2="8" stroke="#A5AFBF" stroke-width="1" /><line x1="100" y1="500" x2="100" y2="492" stroke="#A5AFBF" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="120" y1="500" x2="120" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="140" y1="0" x2="140" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="140" y1="500" x2="140" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="160" y1="500" x2="160" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="180" y1="0" x2="180" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="180" y1="500" x2="180" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="8" stroke="#A5AFBF" stroke-width="1" /><line x1="200" y1="500" x2="200" y2="492" stroke="#A5AFBF" stroke-width="1" /><line x1="220" y1="0" x2="220" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="220" y1="500" x2="220" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="240" y1="500" x2="240" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="260" y1="0" x2="260" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="260" y1="500" x2="260" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="280" y1="500" x2="280" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="300" y1="0" x2="300" y2="8" stroke="#A5AFBF" stroke-width="1" /><line x1="300" y1="500" x2="300" y2="492" stroke="#A5AFBF" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="320" y1="500" x2="320" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="340" y1="0" x2="340" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="340" y1="500" x2="340" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="360" y1="500" x2="360" y2="496" stroke="#A5AFBF" stroke-width="1" /><line x1="380" y1="0" x2="380" y2="4" stroke="#A5AFBF" stroke-width="1" /><line x1="380" y1="500" x2="380" y2="496" stroke="#A5AFBF" stroke-width="1" /></svg>
+<div class="photo"><img src="assets/img/alexa-echo-devices.webp" alt="Project photograph of an Amazon Echo Dot and an Echo Show on a surface" width="629" height="481" decoding="async"></div>
+<span class="tag am" style="left:11%;top:11%">Exhibit ALX-01</span>
+<span class="tag" style="right:11%;top:11%">UTC+0</span>
+<span class="tag te" style="left:11%;bottom:20%">Source · SAR archive</span>
+<span class="tag am" style="right:11%;bottom:20%">21:54:04Z → 21:54:20Z</span>
+<span class="tag" style="left:11%;bottom:11%">Project photograph</span>
+<span class="tag te" style="right:11%;bottom:11%">16 s anomaly</span>
+</div></div></div></section><section class="alt" aria-labelledby="intro-h"><div class="wrap"><div class="intro">
+<h2 id="intro-h">Understanding the evidence behind digital activity.</h2>
+<div class="body"><p>This portfolio collects four practical investigations carried out as academic forensic case studies. Each starts from a question, works through acquisition and examination, and ends with what the evidence supports and where it stops.</p>
+<p>The work spans a seized-computer scenario with a reconstructed RAID set, a comparison of Snapchat artefacts on Android and iOS, residual traces left by a private-browsing session, and cloud-hosted evidence from Amazon Echo devices obtained through a GDPR Subject Access Request.</p>
+<p>Throughout, findings are labelled by how strongly the evidence supports them, and limitations are stated next to the results they affect.</p></div>
+<div class="pillars">
+<div><span class="label a">Computers</span><b>Windows &amp; disks</b><span>RAID reconstruction, registry hives, shellbags, LNK and jump lists.</span></div>
+<div><span class="label a">Mobile</span><b>Android &amp; iOS</b><span>Snapchat databases and device metadata across two platforms.</span></div>
+<div><span class="label a">Browsers</span><b>Residual traces</b><span>History, cookies, cache and carved fragments from a private session.</span></div>
+<div><span class="label a">IoT &amp; cloud</span><b>Connected devices</b><span>Alexa telemetry and behavioural artefacts from official data exports.</span></div>
+</div></div></div></section><section id="investigations" aria-labelledby="inv-h"><div class="wrap">
+<div class="sec-head"><span class="label t">Selected investigations</span><h2 id="inv-h">Four investigations, one method.</h2><p>Filter by discipline. Each case study follows the same structure, from the original question to limitations.</p></div>
+<div class="filters" role="group" aria-label="Filter investigations by discipline">
+<button class="chip" type="button" data-f="all" aria-pressed="true">All</button><button class="chip" type="button" data-f="computer" aria-pressed="false">Computer</button><button class="chip" type="button" data-f="mobile" aria-pressed="false">Mobile</button><button class="chip" type="button" data-f="browser" aria-pressed="false">Browser</button><button class="chip" type="button" data-f="iot" aria-pressed="false">IoT &amp; cloud</button></div>
+<p class="label" id="filter-status" aria-live="polite" style="margin:-8px 0 20px">4 investigations shown</p>
+<div class="cards">
+<a class="card c1" data-d="iot cloud" href="alexa-iot-forensics.html"><div class="thumb"><span class="tag am ref">ALX-01 · Flagship research</span><div style="position:absolute;inset:0;display:grid;place-items:center;background:#0a1224"><div style="width:min(78%,560px);border:1px solid #F0A45D;position:relative"><img src="assets/img/alexa-echo-devices.webp" alt="Project photograph of an Echo Dot and an Echo Show" loading="lazy" width="629" height="481"></div></div></div>
+<div class="txt"><span class="cat">IoT Forensics / Cloud Forensics</span><h3>Amazon Alexa IoT Forensics</h3><p>Cloud-based evidence acquisition and artefact interpretation across an Echo Dot and an Echo Show, using Amazon's GDPR Subject Access Request. The comparison shows that cross-device analysis gives a fuller picture than either device alone.</p><div class="tools"><span>GDPR SAR</span><span>Python / Colab</span><span>Magnet AXIOM</span></div><span class="view">View case study <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span></div></a>
+<a class="card c2" data-d="computer" href="raid-windows-forensics.html"><div class="thumb art"><span class="tag am ref">RDW-02</span><svg class="" viewBox="0 0 480 300" role="img" aria-label="Illustration: four disk images combined into one rebuilt image" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="400" y1="0" x2="400" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="440" y1="0" x2="440" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="480" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="480" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="480" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="480" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="480" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="480" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="480" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="480" y2="280" stroke="#1D2B40" stroke-width="1" /><rect x="40" y="50" width="120" height="36" stroke="#27C6B0" fill="#172238" stroke-width="1" /><text x="100" y="72" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">BEF2-1</text><line x1="160" y1="68" x2="250" y2="150" stroke="#27C6B0" stroke-width="1.5" /><path d="M250 150 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="40" y="102" width="120" height="36" stroke="#27C6B0" fill="#172238" stroke-width="1" /><text x="100" y="124" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">BEF2-2</text><line x1="160" y1="120" x2="250" y2="150" stroke="#27C6B0" stroke-width="1.5" /><path d="M250 150 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="40" y="154" width="120" height="36" stroke="#27C6B0" fill="#172238" stroke-width="1" /><text x="100" y="176" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">BEF2-3</text><line x1="160" y1="172" x2="250" y2="150" stroke="#27C6B0" stroke-width="1.5" /><path d="M250 150 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="40" y="206" width="120" height="36" stroke="#27C6B0" fill="#172238" stroke-width="1" /><text x="100" y="228" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">BEF2-4</text><line x1="160" y1="224" x2="250" y2="150" stroke="#27C6B0" stroke-width="1.5" /><path d="M250 150 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="256" y="120" width="170" height="60" stroke="#F0A45D" fill="#172238" stroke-width="1.5" /><text x="341" y="148" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">BEF2-REBUILT</text><text x="341" y="166" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">JBOD / LINEAR</text><text x="24" y="285" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="1.5">ILLUSTRATION · RECONSTRUCTION</text></svg></div>
+<div class="txt"><span class="cat">Disk Forensics / Windows Artefacts / RAID Reconstruction</span><h3>Advanced Forensic Computing</h3><p>Four disk images rebuilt into one, then a Windows drive examined through registry hives, shellbags, LNK files and jump lists, with key items checked in hexadecimal.</p><div class="tools"><span>X-Ways</span><span>Magnet AXIOM</span><span>RegRipper</span><span>MFT Stampede</span></div><span class="view">View case study <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span></div></a>
+<a class="card c3" data-d="mobile" href="snapchat-mobile-forensics.html"><div class="thumb art"><span class="tag am ref">SNP-03</span><svg class="" viewBox="0 0 480 300" role="img" aria-label="Illustration: Android and iOS handsets compared" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="400" y1="0" x2="400" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="440" y1="0" x2="440" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="480" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="480" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="480" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="480" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="480" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="480" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="480" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="480" y2="280" stroke="#1D2B40" stroke-width="1" /><rect x="90" y="40" width="120" height="210" stroke="#27C6B0" fill="#172238" stroke-width="1.5" rx="14"/><rect x="100" y="56" width="100" height="160" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="150" y="236" font-family="IBM Plex Mono,monospace" font-size="12" fill="#27C6B0" text-anchor="middle" font-weight="500" letter-spacing="1.5">ANDROID</text><rect x="110" y="70" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="150" y="91" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">arroyo.db</text><rect x="110" y="114" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="150" y="135" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">contacts</text><rect x="110" y="158" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="150" y="179" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">media</text><rect x="270" y="40" width="120" height="210" stroke="#F0A45D" fill="#172238" stroke-width="1.5" rx="14"/><rect x="280" y="56" width="100" height="160" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="330" y="236" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">iOS</text><rect x="290" y="70" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="330" y="91" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">arroyo.db</text><rect x="290" y="114" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="330" y="135" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">contacts</text><rect x="290" y="158" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="330" y="179" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">media</text><line x1="222" y1="145" x2="258" y2="145" stroke="#A5AFBF" stroke-width="1" stroke-dasharray="3 3"/><text x="240" y="283" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="500" letter-spacing="1.5">ILLUSTRATION · NOT A DEVICE SCREENSHOT</text></svg></div>
+<div class="txt"><span class="cat">Android / iOS / Snapchat</span><h3>Mobile Application Forensics</h3><p>A comparison of Snapchat artefacts on a Samsung Galaxy S20+ and an iPhone, with hash checks before and after examination.</p><div class="tools"><span>Cellebrite Physical Analyzer</span><span>Magnet AXIOM</span></div><span class="view">View case study <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span></div></a>
+<a class="card c4" data-d="browser" href="uc-browser-forensics.html"><div class="thumb art"><span class="tag am ref">UCB-04</span><svg class="" viewBox="0 0 480 300" role="img" aria-label="Illustration: browser window with normal and private tabs and artefact stores" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="400" y1="0" x2="400" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="440" y1="0" x2="440" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="480" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="480" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="480" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="480" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="480" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="480" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="480" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="480" y2="280" stroke="#1D2B40" stroke-width="1" /><rect x="50" y="40" width="380" height="200" stroke="#27C6B0" fill="#172238" stroke-width="1.5" /><line x1="50" y1="70" x2="430" y2="70" stroke="#26344B" stroke-width="1" /><rect x="62" y="48" width="110" height="22" stroke="#F0A45D" fill="#0B1020" stroke-width="1" /><text x="117" y="63" font-family="IBM Plex Mono,monospace" font-size="10" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.2">NORMAL</text><rect x="176" y="48" width="110" height="22" stroke="#A5AFBF" fill="#0B1020" stroke-width="1" /><text x="231" y="63" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="500" letter-spacing="1.2">PRIVATE</text><rect x="70" y="92" width="160" height="46" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="150" y="120" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">History</text><rect x="245" y="92" width="160" height="46" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="325" y="120" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Cookies</text><rect x="70" y="154" width="160" height="46" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="150" y="182" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Cache</text><rect x="245" y="154" width="160" height="46" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="325" y="182" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Search hits</text><text x="240" y="283" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="500" letter-spacing="1.5">ILLUSTRATION · RESIDUAL BROWSER ARTEFACTS</text></svg></div>
+<div class="txt"><span class="cat">Internet Forensics / Browser Artefacts</span><h3>UC Browser Forensics</h3><p>Normal and incognito browsing in a controlled Windows 10 virtual machine, then imaged and examined for history, cookies, cache and carved fragments.</p><div class="tools"><span>FTK Imager</span><span>X-Ways</span><span>DB Browser for SQLite</span><span>Magnet AXIOM</span></div><span class="view">View case study <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg></span></div></a>
+</div></div></section><section class="alt" aria-labelledby="comp-h"><div class="wrap"><div class="sec-head"><span class="label t">Technical competencies</span><h2 id="comp-h">Disciplines practised.</h2><p>Each area is backed by an investigation in this portfolio. See Skills for the tools involved.</p></div><div class="comp"><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/></svg><h3>Computer Forensics</h3><p>Disk imaging, RAID reconstruction, registry hives and Windows user-activity artefacts.</p></div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg><h3>Mobile Forensics</h3><p>Full file system examination of Android and iOS, and Snapchat application databases.</p></div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.500 0 18M12 3c-3 3.5-3 14.500 0 18"/></svg><h3>Browser Forensics</h3><p>History databases, cookies, cache, and carved URL fragments in a private-browsing scenario.</p></div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="6" width="12" height="12"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg><h3>IoT Forensics</h3><p>Telemetry and behavioural artefacts from consumer smart-home devices.</p></div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M7 18a4 4 0 010-8 5.500 5.500 0 0110.500 1.500A3.300 3.300 0 0117 18z"/></svg><h3>Cloud Forensics</h3><p>Evidence obtained through official data access requests, and the limits of that route.</p></div><div><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="10.500" cy="10.500" r="6.500"/><path d="M16 16l5 5"/></svg><h3>Digital Evidence Analysis</h3><p>Cross-tool verification, artefact correlation and separating findings from interpretation.</p></div></div></div></section><section id="method" aria-labelledby="m-h"><div class="wrap"><div class="sec-head"><span class="label t">Methodology</span><h2 id="m-h">Evidence requires process.</h2><p>Select a stage to read how it is approached.</p></div>
+<div class="method" role="tablist" aria-label="Investigation stages"><button type="button" role="tab" id="mt0" aria-selected="false" aria-controls="method-panel" tabindex="-1"><span class="n">01</span><b>Identify</b></button><button type="button" role="tab" id="mt1" aria-selected="false" aria-controls="method-panel" tabindex="-1"><span class="n">02</span><b>Preserve</b></button><button type="button" role="tab" id="mt2" aria-selected="false" aria-controls="method-panel" tabindex="-1"><span class="n">03</span><b>Acquire</b></button><button type="button" role="tab" id="mt3" aria-selected="false" aria-controls="method-panel" tabindex="-1"><span class="n">04</span><b>Examine</b></button><button type="button" role="tab" id="mt4" aria-selected="false" aria-controls="method-panel" tabindex="-1"><span class="n">05</span><b>Analyse</b></button><button type="button" role="tab" id="mt5" aria-selected="false" aria-controls="method-panel" tabindex="-1"><span class="n">06</span><b>Report</b></button></div>
+<div class="method-panel" id="method-panel" role="tabpanel" aria-live="polite"></div>
+<p class="note">A general investigative framework. It describes the approach across this portfolio, and does not claim that every project followed identical procedures. For example, the Alexa data came from a data access request, so no disk image or hash could be made.</p>
+<script type="application/json" id="method-data">[{"t": "Identify", "d": "Define the question and the likely sources of evidence: which devices, accounts, applications or cloud services could hold relevant data, and what the scenario allows."}, {"t": "Preserve", "d": "Protect the evidence before touching it. Keep originals unaltered, record provenance, and work on copies so the original remains available for checking."}, {"t": "Acquire", "d": "Collect the data through a method suited to the source: disk imaging, a full file system extraction, or an official data access request. Record hash values where the method supports them."}, {"t": "Examine", "d": "Parse and locate artefacts with forensic tools, then confirm important items by hand, for example in hexadecimal or directly in the database."}, {"t": "Analyse", "d": "Correlate artefacts across tools and sources, separate recovered evidence from interpretation, and test whether more than one artefact supports the same reading."}, {"t": "Report", "d": "State what was found, how, and with what limits. Keep confirmed findings, potential artefacts and interpretation clearly apart."}]</script></div></section><section class="alt" id="about" aria-labelledby="ab-h"><div class="wrap"><div class="sec-head"><span class="label t">About</span><h2 id="ab-h">How digital activity leaves a trace.</h2><p>Name and background details are placeholders to complete.</p></div>
+<div class="about"><div class="portrait"><div class="frame"><span>Professional portrait<br>placeholder</span></div><p class="label" style="margin-top:12px"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p></div>
+<div class="about-copy"><div class="open"><p>I am interested in understanding how digital activity can be reconstructed from the traces left across devices, applications and connected environments.</p>
+<p>My work explores computer, mobile, browser and IoT forensics, with an emphasis on evidence acquisition, artefact examination and structured investigative analysis.</p>
+<p>Through research and practical forensic investigations, I explore the relationship between digital evidence, technology and investigative decision-making.</p></div>
+<div class="dl"><div><h4>Areas of interest</h4><ul><li>IoT and cloud evidence</li><li>Windows user-activity artefacts</li><li>Mobile application databases</li><li>Evidence interpretation and limits</li></ul></div>
+<div><h4>Investigation domains</h4><ul><li>Computer and Windows forensics</li><li>Mobile device forensics</li><li>Browser and internet forensics</li><li>IoT and cloud forensics</li></ul></div>
+<div><h4>Academic background</h4><ul><li>MSc Digital Forensics and Cyber Investigations <span class="ph">[INSTITUTION · DATES]</span></li><li>BEng Electrical/Electronics <span class="ph">[INSTITUTION · YEAR]</span></li></ul></div>
+<div><h4>Location</h4><ul><li><span class="ph">[LOCATION]</span></li></ul></div></div>
+<p>The case studies here were completed as academic work. They are presented as research and assessment exercises with simulated scenarios.</p>
+<div class="cta-row"><a class="btn" href="assets/downloads/CV.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="btn ghost" href="#contact">Get in touch</a></div></div></div></div></section><section id="skills" aria-labelledby="sk-h"><div class="wrap"><div class="sec-head"><span class="label t">Skills and tools</span><h2 id="sk-h">What was used, and how.</h2><p>Select a tool to see how it was applied in these investigations. No proficiency ratings are claimed.</p></div><div class="skillgrid"><div class="skillcat"><span class="label t">Computer Forensics</span><h3>Computer Forensics</h3><p>Examining disks, registry hives and Windows artefacts.</p><div class="tl"><button type="button" class="tool" aria-expanded="false" data-how="Used to add disk images, reconstruct the four-disk RAID set (JBOD/Linear), browse file systems, view hexadecimal and take a refined volume snapshot in the browser investigation.">X-Ways Forensics</button><button type="button" class="tool" aria-expanded="false" data-how="Used across the computer, browser and Alexa investigations to parse artefacts, compare operating system details, locate media and cross-check other tools.">Magnet AXIOM</button><button type="button" class="tool" aria-expanded="false" data-how="Used to convert a virtual machine disk into a raw image that X-Ways could load.">FTK Imager</button><button type="button" class="tool" aria-expanded="false" data-how="Used to load registry hives and read user, software and recent-document keys.">Windows Registry Recovery</button><button type="button" class="tool" aria-expanded="false" data-how="Named in the Windows investigation as a registry extraction tool.">RegRipper</button><button type="button" class="tool" aria-expanded="false" data-how="Used to convert raw timestamp values into readable dates, for example the Windows installation time.">MFT Stampede</button></div><div class="tooldesc" aria-live="polite"></div></div><div class="skillcat"><span class="label t">Mobile Forensics</span><h3>Mobile Forensics</h3><p>Android and iOS application artefacts.</p><div class="tl"><button type="button" class="tool" aria-expanded="false" data-how="Used to examine full file system extractions from a Samsung Galaxy S20+ and an iPhone, including Snapchat databases, and to compare hash values.">Cellebrite Physical Analyzer</button><button type="button" class="tool" aria-expanded="false" data-how="Named alongside Cellebrite as an analysis tool in the Snapchat report.">Magnet AXIOM</button><button type="button" class="tool" aria-expanded="false" data-how="Snapchat stores found on Android: Memories, My Eyes Only, Journal, contacts and message data.">Android artefact analysis</button><button type="button" class="tool" aria-expanded="false" data-how="Device-level metadata and Snapchat databases on iOS, which held fewer Snapchat-specific stores.">iOS artefact analysis</button></div><div class="tooldesc" aria-live="polite"></div></div><div class="skillcat"><span class="label t">Browser and Internet Forensics</span><h3>Browser and Internet Forensics</h3><p>Residual traces of web activity.</p><div class="tl"><button type="button" class="tool" aria-expanded="false" data-how="Used to open the UC Browser History database directly and read its tables and fields.">SQLite / DB Browser for SQLite</button><button type="button" class="tool" aria-expanded="false" data-how="Used to find URL fragments in unallocated and unstructured space.">X-Ways search hits</button><button type="button" class="tool" aria-expanded="false" data-how="Reading visited URLs, titles, counts and timestamps.">Browser history analysis</button><button type="button" class="tool" aria-expanded="false" data-how="Reviewing cached records as evidence of content the browser retrieved.">Cache analysis</button><button type="button" class="tool" aria-expanded="false" data-how="Reading cookie names, hosts and expiry values surfaced by AXIOM.">Cookie analysis</button></div><div class="tooldesc" aria-live="polite"></div></div><div class="skillcat"><span class="label t">IoT and Cloud Forensics</span><h3>IoT and Cloud Forensics</h3><p>Evidence from consumer devices and cloud exports.</p><div class="tl"><button type="button" class="tool" aria-expanded="false" data-how="The acquisition route for the Alexa study: a Subject Access Request returned a ZIP of 32 files.">Amazon GDPR SAR</button><button type="button" class="tool" aria-expanded="false" data-how="Telemetry from an Echo Show and behavioural artefacts from an Echo Dot, compared across devices.">Alexa artefact analysis</button><button type="button" class="tool" aria-expanded="false" data-how="Used to parse the archive, build timelines and produce charts. It was the only viable analysis platform found for this data.">Python / Google Colaboratory</button><button type="button" class="tool" aria-expanded="false" data-how="Working out what an export contains and, as importantly, what it does not.">Cloud data analysis</button></div><div class="tooldesc" aria-live="polite"></div></div><div class="skillcat"><span class="label t">Technical Methods</span><h3>Technical Methods</h3><p>Practices applied across investigations.</p><div class="tl"><button type="button" class="tool" aria-expanded="false" data-how="Creating raw images of a virtual disk and loading them for examination.">Disk imaging</button><button type="button" class="tool" aria-expanded="false" data-how="Keeping originals unaltered and analysing copies.">Evidence preservation</button><button type="button" class="tool" aria-expanded="false" data-how="Comparing SHA values for recovered images, and hash values recorded before and after mobile examination.">Hash verification</button><button type="button" class="tool" aria-expanded="false" data-how="Combining four images into one rebuilt image.">RAID reconstruction</button><button type="button" class="tool" aria-expanded="false" data-how="NTUSER.DAT, SAM, SECURITY, SOFTWARE, SYSTEM and UsrClass.dat.">Registry examination</button><button type="button" class="tool" aria-expanded="false" data-how="SQLite and application databases such as Snapchat&#x27;s arroyo.db.">Database analysis</button><button type="button" class="tool" aria-expanded="false" data-how="Ordering timestamped artefacts across tools.">Timeline reconstruction</button><button type="button" class="tool" aria-expanded="false" data-how="Checking that independent artefacts support the same reading.">Artefact correlation</button><button type="button" class="tool" aria-expanded="false" data-how="Charts and timelines produced in Python from the Alexa data.">Data visualisation</button></div><div class="tooldesc" aria-live="polite"></div></div></div></div></section><section class="alt" id="contact" aria-labelledby="c-h"><div class="wrap"><div class="contact">
+<h2 id="c-h">Have an investigation, research opportunity or technical collaboration in mind?</h2>
+<div class="ways"><dl><div><dt>Email</dt><dd><span class="ph">[PROFESSIONAL EMAIL]</span></dd></div><div><dt>LinkedIn</dt><dd><a href="#" data-soon="Add your LinkedIn URL in place of [LINKEDIN URL].">[LINKEDIN URL]</a></dd></div><div><dt>GitHub</dt><dd><a href="#" data-soon="Add your GitHub URL in place of [GITHUB URL].">[GITHUB URL]</a></dd></div><div><dt>Location</dt><dd>[LOCATION]</dd></div><div><dt>CV</dt><dd><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV (PDF)</a></dd></div></dl></div>
+<form id="contact-form" novalidate aria-label="Contact form">
+<div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name"><span class="err">Enter your name.</span></div>
+<div class="field"><label for="f-mail">Email</label><input id="f-mail" name="email" type="email" autocomplete="email"><span class="err">Enter a valid email address.</span></div>
+<div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message"></textarea><span class="err">Write at least 10 characters.</span></div>
+<button class="btn" type="submit">Send message</button>
+<p class="formnote">Demo form: it checks your input but does not send anything yet. Connect it to a form service before publishing.</p></form>
+<div class="confirm" id="form-ok" tabindex="-1" role="status"><p style="color:var(--fg);margin:0 0 10px"><strong>Form checked. Nothing was sent.</strong></p><p style="margin:0 0 16px;color:var(--fg2)">This form is not connected to a submission service yet. Use the email address above in the meantime.</p><button class="btn ghost sm" type="button" id="form-again">Edit message</button></div>
+</div></div></section></main><footer class="site"><div class="wrap">
+<div class="foot">
+<div class="about-f"><p class="big"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p><p style="color:var(--fg2);margin:8px 0 0">Digital Forensics &amp; Cyber Investigations.</p>
+<p style="color:var(--fg2);font-size:14px;margin-top:18px">Academic forensic case studies. Scenarios are simulations built for research and assessment, not live prosecutions.</p></div>
+<div class="col"><h4>Navigate</h4><ul><li><a href="#about">About</a></li><li><a href="#investigations">Investigations</a></li><li><a href="#skills">Skills</a></li><li><a href="#contact">Contact</a></li></ul></div>
+<div class="col"><h4>Investigations</h4><ul><li><a href="alexa-iot-forensics.html">Amazon Alexa IoT Forensics</a></li><li><a href="raid-windows-forensics.html">RAID Reconstruction & Windows Forensics</a></li><li><a href="snapchat-mobile-forensics.html">Snapchat Mobile Forensics</a></li><li><a href="uc-browser-forensics.html">UC Browser Forensics</a></li></ul></div>
+<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul></div>
+</div>
+<div class="foot-bot"><span>&copy; <span class="yr">2026</span> <span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></span><em>Investigate. Analyse. Understand.</em></div>
+</div></footer><div class="toast" role="status" aria-live="polite"></div>
+<script>(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* mobile menu */
+var mb=$('.menu-btn'),nl=$('#navlist');
+if(mb&&nl){
+  mb.addEventListener('click',function(){var o=nl.classList.toggle('open');mb.setAttribute('aria-expanded',o);});
+  $$('a',nl).forEach(function(a){a.addEventListener('click',function(){nl.classList.remove('open');mb.setAttribute('aria-expanded','false');});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nl.classList.contains('open')){nl.classList.remove('open');mb.setAttribute('aria-expanded','false');mb.focus();}});
+}
+
+/* scroll progress */
+var bar=$('.progress');
+function prog(){if(!bar)return;var h=document.documentElement.scrollHeight-innerHeight;bar.style.transform='scaleX('+(h>0?Math.min(1,scrollY/h):0)+')';}
+addEventListener('scroll',prog,{passive:true});prog();
+
+/* scrollspy: nav links (home) and table of contents (case studies) */
+function spy(links,attr){
+  if(!links.length||!('IntersectionObserver' in window))return;
+  var map={};links.forEach(function(a){var id=a.getAttribute('href').split('#')[1];if(id){var el=document.getElementById(id);if(el)map[id]={a:a,el:el};}});
+  var ids=Object.keys(map);if(!ids.length)return;
+  function update(){
+    var y=scrollY+140,cur=null;
+    ids.forEach(function(id){if(map[id].el.offsetTop<=y)cur=id;});
+    links.forEach(function(a){a.removeAttribute(attr==='aria-current'?'aria-current':'x');a.classList.remove('on');});
+    if(cur){var a=map[cur].a;if(attr==='aria-current')a.setAttribute('aria-current','true');else a.classList.add('on');}
+  }
+  addEventListener('scroll',update,{passive:true});update();
+}
+spy($$('.nav ul a[href*="#"]').filter(function(a){return !/^(https?:)?\/\//.test(a.getAttribute('href'))&&document.getElementById((a.getAttribute('href').split('#')[1]||'__'))}),'aria-current');
+spy($$('.toc a'),'on');
+
+/* project filter */
+var fchips=$$('.filters .chip');
+fchips.forEach(function(c){c.addEventListener('click',function(){
+  fchips.forEach(function(x){x.setAttribute('aria-pressed',x===c)});
+  var f=c.getAttribute('data-f'),n=0;
+  $$('.card[data-d]').forEach(function(k){var ok=f==='all'||k.getAttribute('data-d').split(' ').indexOf(f)>-1;k.hidden=!ok;if(ok)n++;});
+  var st=$('#filter-status');if(st)st.textContent=n+(n===1?' investigation shown':' investigations shown');
+});});
+
+/* methodology tabs */
+var mt=$$('.method [role="tab"]'),mp=$('#method-panel');
+if(mt.length&&mp){
+  var M=JSON.parse($('#method-data').textContent);
+  function sel(i,focus){mt.forEach(function(t,j){t.setAttribute('aria-selected',i===j);t.tabIndex=i===j?0:-1;});
+    mp.innerHTML='<h3></h3><p></p>';$('h3',mp).textContent=M[i].t;$('p',mp).textContent=M[i].d;if(focus)mt[i].focus();}
+  mt.forEach(function(t,i){t.addEventListener('click',function(){sel(i)});
+    t.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='ArrowDown'){e.preventDefault();sel((i+1)%mt.length,1)}else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();sel((i+mt.length-1)%mt.length,1)}});});
+  sel(0);
+}
+
+/* tool cards */
+$$('.skillcat').forEach(function(cat){
+  var d=$('.tooldesc',cat),tools=$$('.tool',cat);
+  tools.forEach(function(t){t.addEventListener('click',function(){
+    tools.forEach(function(x){x.setAttribute('aria-expanded',x===t)});
+    d.innerHTML='';var b=document.createElement('b');b.textContent=t.textContent+'. ';d.appendChild(b);d.appendChild(document.createTextNode(t.getAttribute('data-how')));
+  });});
+  if(tools[0])tools[0].click();
+});
+
+/* toast */
+var toast=$('.toast');var tt;
+function say(m){if(!toast)return;toast.textContent=m;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show')},3800);}
+$$('[data-soon]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();say(a.getAttribute('data-soon'));});});
+
+/* lightbox */
+var shots=$$('[data-lb]');
+if(shots.length){
+  var lb=document.createElement('div');lb.className='lb';lb.setAttribute('role','dialog');lb.setAttribute('aria-modal','true');lb.setAttribute('aria-label','Image viewer');
+  lb.innerHTML='<div class="lb-bar"><span class="cnt" aria-live="polite"></span><div class="lb-btns"><button type="button" data-a="prev" aria-label="Previous image">&larr;</button><button type="button" data-a="next" aria-label="Next image">&rarr;</button><button type="button" data-a="size" aria-label="Toggle actual size">1:1</button><button type="button" data-a="close" aria-label="Close viewer">Close</button></div></div><div class="lb-stage"><img alt=""></div><div class="lb-cap"></div>';
+  document.body.appendChild(lb);
+  var img=$('img',lb),cap=$('.lb-cap',lb),cnt=$('.cnt',lb),idx=0,last=null;
+  function show(i){idx=(i+shots.length)%shots.length;var s=shots[idx];img.classList.remove('nat');img.src=s.getAttribute('data-lb');img.alt=s.getAttribute('data-alt')||'';cap.textContent=s.getAttribute('data-cap')||'';cnt.textContent=(idx+1)+' / '+shots.length;}
+  function open(i){last=document.activeElement;show(i);lb.classList.add('open');document.body.style.overflow='hidden';$('[data-a=close]',lb).focus();}
+  function close(){lb.classList.remove('open');document.body.style.overflow='';if(last)last.focus();}
+  shots.forEach(function(s,i){s.addEventListener('click',function(){open(i)});});
+  lb.addEventListener('click',function(e){var a=e.target.getAttribute&&e.target.getAttribute('data-a');
+    if(a==='close'||e.target===$('.lb-stage',lb))close();else if(a==='prev')show(idx-1);else if(a==='next')show(idx+1);else if(a==='size')img.classList.toggle('nat');});
+  document.addEventListener('keydown',function(e){if(!lb.classList.contains('open'))return;
+    if(e.key==='Escape')close();else if(e.key==='ArrowLeft')show(idx-1);else if(e.key==='ArrowRight')show(idx+1);
+    else if(e.key==='Tab'){var f=$$('button',lb),fi=f.indexOf(document.activeElement);if(e.shiftKey&&fi<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&fi===f.length-1){e.preventDefault();f[0].focus()}}});
+}
+
+/* contact form: validation and confirmation state. No message is sent. */
+var form=$('#contact-form');
+if(form){
+  var ok=$('#form-ok');
+  function bad(id,on){var f=$('#'+id).closest('.field');f.classList.toggle('bad',on);$('#'+id).setAttribute('aria-invalid',on);}
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var n=$('#f-name').value.trim(),m=$('#f-mail').value.trim(),t=$('#f-msg').value.trim();
+    var vn=n.length>1,vm=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m),vt=t.length>=10;
+    bad('f-name',!vn);bad('f-mail',!vm);bad('f-msg',!vt);
+    if(!(vn&&vm&&vt)){var first=$('.field.bad input,.field.bad textarea',form);if(first)first.focus();return;}
+    form.hidden=true;ok.classList.add('show');ok.focus();
+  });
+  var again=$('#form-again');if(again)again.addEventListener('click',function(){form.reset();form.hidden=false;ok.classList.remove('show');$('#f-name').focus();});
+}
+})();
+
+document.querySelectorAll('.yr').forEach(function(e){e.textContent=new Date().getFullYear()});</script></body></html>

@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Amazon Alexa IoT Forensics | Digital Forensics Portfolio</title>
+<meta name="description" content="Academic case study evaluating cloud-based evidence acquisition and artefact interpretation across an Amazon Echo Dot and Echo Show using a GDPR Subject Access Request.">
+<meta property="og:title" content="Amazon Alexa IoT Forensics | Digital Forensics Portfolio"><meta property="og:description" content="Academic case study evaluating cloud-based evidence acquisition and artefact interpretation across an Amazon Echo Dot and Echo Show using a GDPR Subject Access Request."><meta property="og:type" content="website"><meta property="og:image" content="https://YOUR-DOMAIN.example/assets/img/og.png"><meta property="og:url" content="https://YOUR-DOMAIN.example/alexa-iot-forensics.html"><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://YOUR-DOMAIN.example/alexa-iot-forensics.html"><meta name="theme-color" content="#0B1020">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>/* Layout concept: dark editorial forensics. Asymmetric 12-col grid, mono "exhibit" labels, evidence panels with corner ticks, teal = analysis, amber = evidence markers. */
+:root{
+  --bg:#0B1020; --bg2:#111A2C; --card:#172238; --fg:#F4F5F7; --fg2:#A5AFBF;
+  --teal:#27C6B0; --amber:#F0A45D; --line:#26344B; --grid:#1D2B40; --ink:#06101a;
+  --f-head:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+  --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --maxw:1240px; --gut:max(20px,env(safe-area-inset-left,0px)); --gutr:max(20px,env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17px/1.65 var(--f-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--teal);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#5eead4}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:2px}
+h1,h2,h3,h4{font-family:var(--f-head);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0 0 1em;max-width:68ch}
+.skip{position:absolute;left:-999px;top:8px;background:var(--teal);color:var(--ink);padding:8px 14px;z-index:100;font-weight:600}
+.skip:focus{left:8px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--gut);padding-right:var(--gutr)}
+.mono{font-family:var(--f-mono)}
+.label{font:500 12.5px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg2)}
+.label.t{color:var(--teal)} .label.a{color:var(--amber)}
+.grid-bg{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;background-position:-1px -1px}
+.grid-fade{position:relative;isolation:isolate}
+.grid-fade::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.55;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 85%);mask-image:linear-gradient(to bottom,#000 0%,transparent 85%)}
+
+/* progress + header */
+.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--teal);z-index:60}
+header.site{position:sticky;top:0;z-index:50;background:rgba(11,16,32,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:28px;height:68px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--fg);text-decoration:none;margin-right:auto}
+.brand svg{flex:none}
+.brand b{display:block;font:600 15px/1.1 var(--f-head);letter-spacing:.02em}
+.brand i{display:block;font:500 10.5px/1.3 var(--f-mono);letter-spacing:.12em;color:var(--fg2);text-transform:uppercase;font-style:normal;margin-top:3px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:block;padding:10px 12px;color:var(--fg2);text-decoration:none;font-size:15px;font-weight:500;border-radius:3px}
+.nav ul a:hover,.nav ul a[aria-current]{color:var(--fg)}
+.nav ul a[aria-current]{box-shadow:inset 0 -2px 0 var(--teal)}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border:1px solid var(--teal);background:var(--teal);color:var(--ink);font:600 13px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:background .2s,color .2s,transform .2s}
+.btn:hover{background:transparent;color:var(--teal)}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
+.btn.sm{min-height:38px;padding:0 14px;font-size:12px}
+.btn svg{width:15px;height:15px;flex:none}
+.menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--fg);width:46px;height:46px;cursor:pointer}
+@media(max-width:900px){
+  .menu-btn{display:grid;place-items:center}
+  .nav{gap:12px}
+  .nav ul{position:fixed;inset:68px 0 auto 0;flex-direction:column;background:var(--bg2);border-bottom:1px solid var(--line);padding:12px var(--gutr) 20px var(--gut);gap:0;transform:translateY(-8px);opacity:0;visibility:hidden;transition:.2s}
+  .nav ul.open{transform:none;opacity:1;visibility:visible}
+  .nav ul a{padding:16px 0;font-size:18px;border-bottom:1px solid var(--line);border-radius:0}
+  .nav .btn.cv{display:none}
+  .nav ul .cv-m{display:block}
+}
+.cv-m{display:none}
+
+/* sections */
+section{padding-block:clamp(72px,9vw,128px)}
+.sec-head{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;margin-bottom:clamp(36px,5vw,64px);align-items:end}
+.sec-head .label{grid-column:1/-1}
+.sec-head h2{grid-column:1/9;font-size:clamp(34px,4.6vw,60px)}
+.sec-head p{grid-column:9/-1;color:var(--fg2);font-size:16px;margin:0}
+@media(max-width:900px){.sec-head h2,.sec-head p{grid-column:1/-1}}
+.alt{background:var(--bg2);border-block:1px solid var(--line)}
+
+/* hero */
+.hero{padding-top:clamp(48px,7vw,96px);padding-bottom:clamp(56px,7vw,96px)}
+.hero-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px;align-items:center}
+.hero-copy{grid-column:1/8}
+.hero h1{font-size:clamp(44px,7.6vw,104px);font-weight:700;letter-spacing:-.035em;text-transform:uppercase;line-height:.95}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero .lede{font-size:clamp(17px,1.5vw,20px);color:var(--fg2);margin:28px 0 36px;max-width:56ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:14px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:44px;padding-top:20px;border-top:1px solid var(--line)}
+.hero-meta span{font:500 12px/1.5 var(--f-mono);letter-spacing:.1em;color:var(--fg2);text-transform:uppercase}
+.hero-meta b{color:var(--amber);font-weight:500}
+.hero-vis{grid-column:8/-1;position:relative}
+@media(max-width:1000px){.hero-copy,.hero-vis{grid-column:1/-1}.hero-vis{max-width:560px}}
+.scene{position:relative;aspect-ratio:4/5;border:1px solid var(--line);background:var(--bg2);overflow:hidden}
+.scene svg.ov{position:absolute;inset:0;width:100%;height:100%}
+.scene .photo{position:absolute;left:11%;right:11%;top:19%;bottom:27%;border:1px solid var(--amber);background:#000}
+.scene .photo img{width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;font:500 10.5px/1.4 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);background:rgba(11,16,32,.88);padding:4px 8px;border:1px solid var(--line)}
+.tag.am{color:var(--amber);border-color:rgba(240,164,93,.5)}
+.tag.te{color:var(--teal);border-color:rgba(39,198,176,.45)}
+@keyframes rise{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hero .hero-copy>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) backwards}
+.hero .hero-copy>*:nth-child(2){animation-delay:.08s}.hero .hero-copy>*:nth-child(3){animation-delay:.16s}.hero .hero-copy>*:nth-child(4){animation-delay:.24s}
+
+/* intro */
+.intro{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px}
+.intro h2{grid-column:1/7;font-size:clamp(32px,4vw,52px)}
+.intro .body{grid-column:7/-1}
+.intro .body p{font-size:18px;color:var(--fg2)}
+.intro .body p:first-child{color:var(--fg)}
+.pillars{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);margin-top:24px}
+.pillars div{padding:22px 22px 26px;border-right:1px solid var(--line)}
+.pillars div:last-child{border-right:0}
+.pillars b{display:block;font:600 19px/1.2 var(--f-head);margin:10px 0 6px}
+.pillars span{color:var(--fg2);font-size:15px;line-height:1.5}
+@media(max-width:900px){.intro h2,.intro .body{grid-column:1/-1}.pillars{grid-template-columns:1fr 1fr}.pillars div:nth-child(2){border-right:0}.pillars div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media(max-width:520px){.pillars{grid-template-columns:1fr}.pillars div{border-right:0;border-bottom:1px solid var(--line)}.pillars div:last-child{border-bottom:0}}
+
+/* filter + project cards */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.chip{min-height:40px;padding:0 16px;background:transparent;border:1px solid var(--line);color:var(--fg2);font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.chip:hover{color:var(--fg);border-color:var(--fg2)}
+.chip[aria-pressed="true"]{background:var(--teal);color:var(--ink);border-color:var(--teal)}
+.cards{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.card{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--fg);overflow:hidden;transition:border-color .25s,transform .25s}
+.card:hover{border-color:var(--teal);transform:translateY(-3px);color:var(--fg)}
+.card[hidden]{display:none}
+.card .thumb{position:relative;background:var(--ink);border-bottom:1px solid var(--line);overflow:hidden}
+.card .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.card:hover .thumb img{transform:scale(1.03)}
+.card .thumb .ref{position:absolute;left:12px;top:12px}
+.card .txt{padding:24px 26px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card h3{font-size:clamp(22px,2vw,28px)}
+.card p{color:var(--fg2);font-size:15.5px;margin:0}
+.card .cat{font:500 12px/1.4 var(--f-mono);letter-spacing:.08em;color:var(--teal);text-transform:uppercase}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+.tools span{font:500 11.5px/1 var(--f-mono);color:var(--fg2);border:1px solid var(--line);padding:6px 8px}
+.view{margin-top:6px;display:inline-flex;align-items:center;gap:10px;font:600 12.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.view svg{width:16px;transition:transform .25s}.card:hover .view svg{transform:translateX(5px)}
+.card.c1{grid-column:1/-1;display:grid;grid-template-columns:1.25fr 1fr}
+.card.c1 .thumb{border-bottom:0;border-right:1px solid var(--line);min-height:380px}
+.card.c1 .txt{padding:38px 40px;justify-content:center}
+.card.c1 h3{font-size:clamp(28px,3.4vw,46px)}
+.card.c2,.card.c3,.card.c4{grid-column:span 4}
+.card.c2 .thumb,.card.c3 .thumb,.card.c4 .thumb{aspect-ratio:16/10}
+@media(max-width:960px){.card.c1{grid-template-columns:1fr}.card.c1 .thumb{min-height:0;aspect-ratio:16/10;border-right:0;border-bottom:1px solid var(--line)}.card.c1 .txt{padding:26px}.card.c2,.card.c3,.card.c4{grid-column:1/-1}}
+@media(min-width:620px) and (max-width:960px){.card.c2,.card.c3,.card.c4{grid-column:span 6}.card.c4{grid-column:1/-1}}
+.thumb.art{display:grid;place-items:center;background:linear-gradient(180deg,#0d1730,#0a1224)}
+.thumb.art svg{width:100%;height:100%}
+
+/* competencies */
+.comp{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:var(--bg)}
+.comp div{padding:30px 28px 34px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.comp div:nth-child(3n){border-right:0}.comp div:nth-last-child(-n+3){border-bottom:0}
+.comp svg{width:34px;height:34px;color:var(--teal);margin-bottom:18px}
+.comp h3{font-size:22px;margin-bottom:8px}
+.comp p{font-size:15.5px;color:var(--fg2);margin:0}
+@media(max-width:900px){.comp{grid-template-columns:1fr 1fr}.comp div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}.comp div:nth-child(2n){border-right:0!important}.comp div:nth-last-child(-n+2){border-bottom:0!important}}
+@media(max-width:560px){.comp{grid-template-columns:1fr}.comp div{border-right:0!important}.comp div:last-child{border-bottom:0!important}.comp div:nth-last-child(2){border-bottom:1px solid var(--line)!important}}
+
+/* methodology */
+.method{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);position:relative}
+.method button{position:relative;text-align:left;background:none;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 18px 22px;color:var(--fg2);cursor:pointer;font:inherit}
+.method button:last-child{border-right:0}
+.method button .n{font:500 12px/1 var(--f-mono);color:var(--fg2);letter-spacing:.1em}
+.method button b{display:block;font:600 22px/1.1 var(--f-head);color:var(--fg);margin-top:14px}
+.method button::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:0;background:var(--teal);transition:width .35s}
+.method button[aria-selected="true"]{background:var(--card);color:var(--fg)}
+.method button[aria-selected="true"]::before{width:100%}
+.method button[aria-selected="true"] .n{color:var(--teal)}
+.method-panel{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:28px;padding:34px 0 0;min-height:170px}
+.method-panel h3{grid-column:1/5;font-size:30px}
+.method-panel p{grid-column:5/-1;color:var(--fg2);font-size:18px;margin:0}
+.note{font:400 13.5px/1.55 var(--f-mono);color:var(--fg2);margin-top:28px;border-left:2px solid var(--amber);padding-left:14px;max-width:80ch}
+@media(max-width:900px){.method{grid-template-columns:repeat(3,1fr)}.method button:nth-child(3){border-right:0}.method-panel h3,.method-panel p{grid-column:1/-1}}
+@media(max-width:520px){.method{grid-template-columns:1fr 1fr}.method button:nth-child(3){border-right:1px solid var(--line)}.method button:nth-child(2n){border-right:0}}
+
+/* about */
+.about{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:40px}
+.portrait{grid-column:1/5;align-self:start;position:sticky;top:100px}
+.portrait .frame{aspect-ratio:4/5;border:1px dashed var(--fg2);display:grid;place-items:center;text-align:center;color:var(--fg2);padding:20px;background:var(--bg2);position:relative}
+.portrait .frame span{font:500 12px/1.6 var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.about-copy{grid-column:6/-1}
+.about-copy .open p{font:500 clamp(20px,2.1vw,26px)/1.45 var(--f-head);color:var(--fg);letter-spacing:-.01em}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:36px 0}
+.dl div{padding:22px 24px;border-bottom:1px solid var(--line)}
+.dl div:nth-child(odd){border-right:1px solid var(--line)}
+.dl div:nth-last-child(-n+2){border-bottom:0}
+.dl h4{font:500 12px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.dl ul{margin:0;padding-left:18px;color:var(--fg2);font-size:15.5px}
+.dl li{margin:3px 0}
+.ph{color:var(--amber);font-family:var(--f-mono);font-size:.9em}
+@media(max-width:900px){.portrait{grid-column:1/-1;position:static;max-width:340px}.about-copy{grid-column:1/-1}.dl{grid-template-columns:1fr}.dl div{border-right:0!important}.dl div:nth-last-child(-n+2){border-bottom:1px solid var(--line)}.dl div:last-child{border-bottom:0}}
+
+/* skills */
+.skillgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.skillcat{grid-column:span 6;border:1px solid var(--line);background:var(--card);padding:28px}
+.skillcat:nth-child(5){grid-column:1/-1}
+.skillcat h3{font-size:24px;margin:6px 0 4px}
+.skillcat>p{color:var(--fg2);font-size:15px;margin:0 0 18px}
+.tl{display:flex;flex-wrap:wrap;gap:8px}
+.tool{background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:10px 14px;font:500 13.5px/1.2 var(--f-body);cursor:pointer;text-align:left;transition:.2s}
+.tool:hover{border-color:var(--teal)}
+.tool[aria-expanded="true"]{border-color:var(--teal);background:rgba(39,198,176,.1)}
+.tooldesc{margin-top:14px;padding:16px 18px;border-left:2px solid var(--teal);background:var(--bg);color:var(--fg2);font-size:15px;min-height:60px}
+.tooldesc b{color:var(--fg)}
+@media(max-width:900px){.skillcat{grid-column:1/-1}}
+
+/* contact */
+.contact{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:48px}
+.contact h2{grid-column:1/8;font-size:clamp(34px,5vw,68px)}
+.contact .ways{grid-column:1/6}
+.contact form{grid-column:7/-1;grid-row:2;border:1px solid var(--line);background:var(--card);padding:30px}
+.ways dl{margin:28px 0 0;display:grid;gap:0}
+.ways dl div{display:flex;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.ways dt{font:500 12px/1.6 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.ways dd{margin:0;font:500 15px/1.5 var(--f-mono);color:var(--amber)}
+.ways dd a{color:var(--amber)}
+.field{display:grid;gap:8px;margin-bottom:18px}
+.field label{font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:13px 14px;font:400 16px/1.4 var(--f-body);border-radius:0}
+.field textarea{min-height:130px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:2px solid var(--teal);outline-offset:0;border-color:var(--teal)}
+.field .err{display:none;color:var(--amber);font:500 12.5px/1.4 var(--f-mono)}
+.field.bad .err{display:block}.field.bad input,.field.bad textarea{border-color:var(--amber)}
+.formnote{font:400 12.5px/1.55 var(--f-mono);color:var(--fg2);margin:16px 0 0}
+.confirm{border:1px solid var(--teal);padding:20px;background:rgba(39,198,176,.07);display:none}
+.confirm.show{display:block}
+@media(max-width:900px){.contact h2,.contact .ways,.contact form{grid-column:1/-1;grid-row:auto}}
+
+/* footer */
+footer.site{border-top:1px solid var(--line);background:var(--bg2);padding-block:64px 36px}
+.foot{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:36px}
+.foot .about-f{grid-column:1/5}
+.foot .col{grid-column:span 2}
+.foot .col:nth-child(2){grid-column:6/8}
+.foot h4{font:500 12px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg2);margin-bottom:14px}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot a{color:var(--fg);text-decoration:none;font-size:15px}.foot a:hover{color:var(--teal)}
+.foot .big{font:600 22px/1.2 var(--f-head)}
+.foot-bot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:56px;padding-top:22px;border-top:1px solid var(--line);font:400 13px/1.5 var(--f-mono);color:var(--fg2)}
+.foot-bot em{font-style:normal;color:var(--teal);letter-spacing:.1em}
+@media(max-width:900px){.foot .about-f{grid-column:1/-1}.foot .col,.foot .col:nth-child(2){grid-column:span 6}}
+
+/* ---------- case study ---------- */
+.cs-hero{padding-top:clamp(40px,6vw,80px);padding-bottom:clamp(40px,5vw,72px);border-bottom:1px solid var(--line)}
+.crumbs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.crumbs a{color:var(--fg2);text-decoration:none}.crumbs a:hover{color:var(--teal)}
+.cs-hero h1{font-size:clamp(34px,5.6vw,80px);text-transform:uppercase;letter-spacing:-.03em;line-height:1;max-width:18ch}
+.cs-hero .sub{font-size:clamp(18px,1.8vw,23px);color:var(--fg2);margin:24px 0 0;max-width:60ch}
+.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.badge{font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:9px 12px;border:1px solid var(--amber);color:var(--amber)}
+.cs-hero-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:40px;align-items:end}
+.cs-hero-grid>div:first-child{grid-column:1/8}
+.cs-hero-grid>div:last-child{grid-column:8/-1}
+@media(max-width:960px){.cs-hero-grid>div{grid-column:1/-1!important}}
+.cs{display:grid;grid-template-columns:230px minmax(0,1fr);gap:56px;padding-top:56px}
+.toc{position:sticky;top:96px;align-self:start;max-height:calc(100vh - 120px);overflow:auto}
+.toc ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc a{display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:2px solid transparent;color:var(--fg2);text-decoration:none;font-size:13.5px;line-height:1.35}
+.toc a:hover{color:var(--fg)}
+.toc a.on{color:var(--teal);border-left-color:var(--teal)}
+.toc a span{font-family:var(--f-mono);font-size:11px;color:var(--fg2);margin-right:8px}
+@media(max-width:1020px){.cs{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+.cs-sec{padding-block:0 clamp(56px,7vw,92px);scroll-margin-top:90px}
+.cs-sec>header{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;padding-top:26px;border-top:1px solid var(--line)}
+.cs-sec>header .label{flex:none}
+.cs-sec h2{font-size:clamp(28px,3.2vw,42px)}
+.cs-sec h3{font-size:22px;margin:32px 0 10px}
+.cs-sec p,.cs-sec li{color:var(--fg2)}
+.cs-sec p strong,.cs-sec li strong{color:var(--fg);font-weight:600}
+.cs-sec ul{padding-left:20px;max-width:70ch}.cs-sec li{margin:6px 0}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--line);margin:8px 0 0}
+.kv div{padding:18px 20px;border-bottom:1px solid var(--line)}
+.kv div:nth-child(odd){border-right:1px solid var(--line)}
+.kv div:nth-last-child(-n+2){border-bottom:0}
+.kv dt{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.kv dd{margin:0;color:var(--fg);font-size:16px;line-height:1.5}
+@media(max-width:700px){.kv{grid-template-columns:1fr}.kv div{border-right:0!important}.kv div:nth-last-child(2){border-bottom:1px solid var(--line)}}
+.q{border-left:3px solid var(--teal);padding:6px 0 6px 24px;margin:8px 0;font:500 clamp(21px,2.4vw,30px)/1.35 var(--f-head);color:var(--fg);max-width:34em;letter-spacing:-.01em}
+.status{display:inline-block;font:500 10.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;margin-right:8px;vertical-align:2px;border:1px solid}
+.s-conf{color:var(--teal);border-color:var(--teal)}
+.s-rec{color:var(--teal);border-color:rgba(39,198,176,.45);background:rgba(39,198,176,.08)}
+.s-pot{color:var(--amber);border-color:var(--amber)}
+.s-int{color:var(--fg2);border-color:var(--fg2)}
+.s-hyp{color:#c7b8ff;border-color:#8f7fd6}
+.s-lim{color:var(--amber);border-color:rgba(240,164,93,.45);background:rgba(240,164,93,.08)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 24px;padding:14px 16px;border:1px solid var(--line);background:var(--bg2);font-size:13px;color:var(--fg2)}
+.legend .status{margin-right:6px}
+.findlist{list-style:none;padding:0!important;display:grid;gap:0;border:1px solid var(--line);max-width:none!important}
+.findlist li{margin:0;padding:16px 20px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:128px 1fr;gap:16px;align-items:start}
+.findlist li:last-child{border-bottom:0}
+.findlist .status{margin:0;justify-self:start}
+@media(max-width:600px){.findlist li{grid-template-columns:1fr;gap:8px}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--line);margin:24px 0}
+.stats div{padding:20px 22px;border-right:1px solid var(--line)}
+.stats div:last-child{border-right:0}
+.stats b{display:block;font:600 clamp(30px,3.4vw,46px)/1 var(--f-head);color:var(--fg);font-variant-numeric:tabular-nums}
+.stats span{display:block;margin-top:8px;font:500 11.5px/1.45 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg2)}
+.stats .am b{color:var(--amber)}.stats .te b{color:var(--teal)}
+.panel{border:1px solid var(--line);background:var(--bg2);position:relative;margin:24px 0}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--amber);pointer-events:none}
+.panel::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.panel>.ph-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 16px;border-bottom:1px solid var(--line);font:500 11.5px/1.4 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
+.panel>.ph-bar b{color:var(--amber);font-weight:500}
+.panel .pb{padding:22px}
+.panel figcaption,.panel .cap{padding:12px 16px 16px;border-top:1px solid var(--line);font-size:14px;color:var(--fg2);line-height:1.55}
+.reconstruction{color:var(--teal)!important}
+.diagram{width:100%;height:auto;display:block}
+.dscroll{overflow-x:auto}
+.dscroll .diagram{min-width:640px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.shot{background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;margin:0}
+.shot button{display:block;position:relative;background:#05080f;border:0;padding:0;cursor:zoom-in;aspect-ratio:16/10;overflow:hidden;width:100%}
+.shot button img{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.shot button::after{content:"Enlarge";position:absolute;right:10px;bottom:10px;font:500 10.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;background:rgba(11,16,32,.9);color:var(--teal);padding:6px 8px;border:1px solid var(--line);opacity:0;transition:.2s}
+.shot button:hover::after,.shot button:focus-visible::after{opacity:1}
+.shot figcaption{padding:12px 14px 14px;font-size:13.5px;color:var(--fg2);line-height:1.5}
+.shot figcaption b{display:block;font:500 11px/1.4 var(--f-mono);letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:4px}
+.hero-shot{margin:0;background:var(--bg2);border:1px solid var(--line);position:relative}
+.hero-shot img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.hero-shot figcaption{padding:12px 14px;font:500 11px/1.5 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hero-shot figcaption b{color:var(--amber);font-weight:500}
+details.x{border:1px solid var(--line);background:var(--bg2);margin:12px 0}
+details.x summary{cursor:pointer;padding:16px 20px;font:600 17px/1.35 var(--f-head);color:var(--fg);list-style:none;display:flex;justify-content:space-between;gap:16px;align-items:center}
+details.x summary::-webkit-details-marker{display:none}
+details.x summary::after{content:"+";font:400 24px/1 var(--f-mono);color:var(--teal);flex:none}
+details.x[open] summary::after{content:"\2212"}
+details.x[open] summary{border-bottom:1px solid var(--line)}
+details.x .xb{padding:18px 20px}
+details.x .xb p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;border:1px solid var(--line);margin:20px 0}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--fg2)}
+th{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg);background:var(--bg2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td:first-child{color:var(--fg);font-weight:500}
+td.y{color:var(--teal)}td.n{color:var(--fg2);opacity:.75}td.p{color:var(--amber)}
+.dvs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:24px 0}
+.dvs>div{padding:30px 30px 34px}
+.dvs>div+div{border-left:1px solid var(--line)}
+.dvs h3{margin:8px 0 6px;font-size:clamp(28px,3vw,40px);text-transform:uppercase}
+.dvs .big{font:500 clamp(18px,1.7vw,22px)/1.35 var(--f-head);color:var(--fg);margin:0 0 18px}
+.dvs ul{margin:0;padding-left:18px}
+.dot{background:linear-gradient(180deg,rgba(39,198,176,.09),transparent 60%)}
+.show{background:linear-gradient(180deg,rgba(240,164,93,.09),transparent 60%)}
+@media(max-width:760px){.dvs{grid-template-columns:1fr}.dvs>div+div{border-left:0;border-top:1px solid var(--line)}}
+.flow{list-style:none;padding:0!important;margin:20px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0;border:1px solid var(--line);counter-reset:s;max-width:none!important}
+.flow li{margin:0!important;padding:18px 18px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);counter-increment:s;font-size:14.5px;line-height:1.5;margin:0}
+.flow li::before{content:counter(s,decimal-leading-zero);display:block;font:500 12px/1 var(--f-mono);letter-spacing:.1em;color:var(--amber);margin-bottom:10px}
+.flow li b{display:block;color:var(--fg);font:600 16.5px/1.25 var(--f-head);margin-bottom:6px}
+.skills-demo{display:flex;flex-wrap:wrap;gap:8px}
+.skills-demo span{border:1px solid var(--line);padding:8px 12px;font:500 12.5px/1 var(--f-mono);color:var(--fg);background:var(--bg2)}
+.takeaway{border:1px solid var(--teal);background:linear-gradient(135deg,rgba(39,198,176,.1),transparent 70%);padding:clamp(28px,4vw,52px);margin-top:8px}
+.takeaway p{color:var(--fg);font:500 clamp(21px,2.3vw,30px)/1.4 var(--f-head);letter-spacing:-.01em;max-width:36em;margin-bottom:16px}
+.takeaway small{display:block;color:var(--fg2);font-size:14.5px;line-height:1.55;max-width:64ch}
+.next{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin-top:20px}
+.next a{display:block;padding:32px 30px;text-decoration:none;color:var(--fg);transition:background .25s}
+.next a+a{border-left:1px solid var(--line);text-align:right}
+.next a:hover{background:var(--card)}
+.next b{display:block;font:600 clamp(20px,2.2vw,28px)/1.15 var(--f-head);margin-top:10px}
+@media(max-width:700px){.next{grid-template-columns:1fr}.next a+a{border-left:0;border-top:1px solid var(--line);text-align:left}}
+.note-box{border:1px solid var(--line);border-left:3px solid var(--amber);padding:14px 18px;margin:18px 0;background:var(--bg2);font-size:15px;color:var(--fg2)}
+.note-box b{color:var(--amber);font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:100;background:rgba(5,8,15,.94);display:none;flex-direction:column;padding:max(16px,env(safe-area-inset-top,0px)) var(--gutr) max(16px,env(safe-area-inset-bottom,0px)) var(--gut)}
+.lb.open{display:flex}
+.lb-bar{display:flex;align-items:center;gap:12px;justify-content:space-between;padding-bottom:12px}
+.lb-bar .cnt{font:500 12px/1 var(--f-mono);color:var(--fg2);letter-spacing:.1em}
+.lb-btns{display:flex;gap:8px}
+.lb button{min-width:46px;min-height:46px;background:var(--bg2);border:1px solid var(--line);color:var(--fg);font:500 14px/1 var(--f-mono);cursor:pointer;padding:0 14px}
+.lb button:hover{border-color:var(--teal);color:var(--teal)}
+.lb-stage{flex:1;min-height:0;display:grid;place-items:center;overflow:auto}
+.lb-stage img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.lb-stage img.nat{max-width:none;max-height:none}
+.lb-cap{padding-top:12px;color:var(--fg2);font-size:14.5px;max-width:90ch}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--amber);color:var(--fg);padding:12px 18px;font:500 13px/1.4 var(--f-mono);opacity:0;pointer-events:none;transition:.25s;z-index:120;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{header.site,.toc,.progress,.lb{display:none}}
+
+.hero-grid>*,.about>*,.intro>*,.contact>*,.sec-head>*,.cs-hero-grid>*,.cards>*,.skillgrid>*,.foot>*,.cs>div{min-width:0}
+@media(max-width:900px){.hero-grid,.about,.intro,.contact,.sec-head,.cs-hero-grid,.cards,.skillgrid,.foot{column-gap:0}}
+.panel,.shot,.tbl,.kv,.stats{min-width:0;max-width:100%}
+@media(max-width:520px){.scene .tag{font-size:9.5px;padding:3px 6px}.scene .tag:nth-of-type(3){display:none}.scene .tag:nth-of-type(4){left:11%;right:auto;bottom:20%}}
+
+header.site{top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
+</style></head><body>
+<a class="skip" href="#main">Skip to content</a><div class="progress" aria-hidden="true"></div>
+<header class="site"><div class="wrap nav">
+<a class="brand" href="index.html#top" aria-label="Digital Forensics and Cyber Investigations, home"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28" stroke="#F0A45D" stroke-width="2"/><text x="20" y="25.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="500" font-size="14" fill="#27C6B0">DF</text></svg><span><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span></a>
+<ul id="navlist"><li><a href="index.html#top">Home</a></li><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations">Investigations</a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li><li class="cv-m"><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul>
+<a class="btn sm cv" href="assets/downloads/CV.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a>
+<button class="menu-btn" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
+</div></header><main id="main"><div class="cs-hero grid-fade"><div class="wrap">
+<div class="crumbs label"><a href="index.html#investigations">Investigations</a><span>/</span><span class="a">ALX-01 · Flagship</span></div>
+<div class="cs-hero-grid"><div><h1>Forensic investigation of Amazon Alexa-enabled IoT devices</h1><p class="sub">Evaluating cloud-based evidence acquisition and forensic artefact interpretation across Amazon Echo Dot and Echo Show.</p><div class="badge-row"><span class="badge">Academic forensic case study</span><span class="badge">IoT &amp; Cloud</span></div></div><div><figure class="hero-shot"><img src="assets/img/alexa-echo-devices.webp" alt="Project photograph of an Amazon Echo Dot and an Echo Show" width="629" height="481" decoding="async"><figcaption><span>Exhibit <b>ALX-01</b></span><span>Project photograph · UTC+0</span></figcaption></figure></div></div>
+</div></div>
+<div class="wrap cs"><nav class="toc" aria-label="Case study sections"><ol><li><a href="#intro"><span>01</span>Project introduction</a></li><li><a href="#overview"><span>02</span>Investigation overview</a></li><li><a href="#question"><span>03</span>Research question</a></li><li><a href="#background"><span>04</span>Background and context</a></li><li><a href="#evidence"><span>05</span>Evidence sources</a></li><li><a href="#tools"><span>06</span>Tools and technologies</a></li><li><a href="#acquisition"><span>07</span>Acquisition methodology</a></li><li><a href="#analysis"><span>08</span>Examination and analysis</a></li><li><a href="#findings"><span>09</span>Findings</a></li><li><a href="#dashboard"><span>10</span>Data visualisations</a></li><li><a href="#gallery"><span>11</span>Visual evidence gallery</a></li><li><a href="#limits"><span>12</span>Limitations and challenges</a></li><li><a href="#skills"><span>13</span>Technical skills demonstrated</a></li><li><a href="#takeaway"><span>14</span>Final investigative takeaway</a></li></ol></nav><div><section class="cs-sec" id="intro" aria-labelledby="intro-h"><header><span class="label t">01</span><h2 id="intro-h">Project introduction</h2></header><p>Amazon Echo devices keep little on the device itself and hold much of their evidence in the cloud. This research asked what an investigator can recover through an official route, a GDPR Subject Access Request, and how reliable and complete that evidence is.</p><p>Two devices were studied: an Echo Show whose telemetry covered 160 days, and an Echo Dot used in a controlled test over 23 days. The two data sets turned out to hold different kinds of evidence.</p><div class="note-box"><b>Academic research</b>The scenario is a simulated household burglary between 01:00 and 03:00. This is a research investigation, not a real-world criminal case.</div></section><section class="cs-sec" id="overview" aria-labelledby="overview-h"><header><span class="label t">02</span><h2 id="overview-h">Investigation overview</h2></header><dl class="kv"><div><dt>Research area</dt><dd>IoT and Cloud Forensics</dd></div><div><dt>Devices</dt><dd>Amazon Echo Dot (5th generation) and Echo Show</dd></div><div><dt>Acquisition method</dt><dd>Amazon GDPR Subject Access Request, Article 15 UK GDPR</dd></div><div><dt>Analysis</dt><dd>Python in Google Colaboratory, cross-checked in Magnet AXIOM</dd></div><div><dt>Research context</dt><dd>Simulated household burglary, 01:00 to 03:00</dd></div><div><dt>Frameworks</dt><dd>ACPO Principles of Digital Evidence; Zawoad and Hasan artefact taxonomy; Reith, Carr and Gunsch process model</dd></div></dl><div class="stats"><div class="am"><b>160</b><span>days of Echo Show telemetry</span></div><div class="te"><b>23</b><span>days of Echo Dot data</span></div><div class=""><b>32</b><span>files in the SAR archive</span></div><div class=""><b>844</b><span>items in AXIOM</span></div></div></section><section class="cs-sec" id="question" aria-labelledby="question-h"><header><span class="label t">03</span><h2 id="question-h">Research question</h2></header><p class="q">How can cloud-hosted digital evidence obtained through official data access mechanisms be acquired, examined and interpreted during an IoT forensic investigation?</p><h3>Objectives</h3><ul><li><strong>Literature and frameworks.</strong> Examine IoT forensic research and the difficulties it reports.</li><li><strong>Artefact analysis.</strong> Identify and examine artefacts in data obtained through the SAR process.</li><li><strong>Comparative evaluation.</strong> Compare findings with current models and literature to judge how well existing methods cope.</li></ul></section><section class="cs-sec" id="background" aria-labelledby="background-h"><header><span class="label t">04</span><h2 id="background-h">Background and context</h2></header><p>Echo hardware uses encryption and proprietary firmware, which makes conventional imaging impractical. Evidence is spread across the device, the companion app and Amazon's cloud, and no standard procedure exists for IoT forensics. The forensic value of SAR data had not been thoroughly evaluated.</p><details class="x"><summary>What is a Subject Access Request?</summary><div class="xb"><p>Under Article 15 of the UK GDPR and the Data Protection Act 2018, an account holder can ask a company for a copy of the personal data it holds. Amazon accepted the request through its privacy portal and returned a ZIP archive about one week later. The route is read-only: it cannot alter Amazon's data.</p></div></details><details class="x"><summary>Why a simulated burglary?</summary><div class="xb"><p>The scenario gave the data a purpose. It framed the Echo Dot as a possible exhibit and let the analysis ask what each artefact could say about the 01:00 to 03:00 window, without implying that any real offence took place.</p></div></details></section><section class="cs-sec" id="evidence" aria-labelledby="evidence-h"><header><span class="label t">05</span><h2 id="evidence-h">Evidence sources</h2></header><ul><li><strong>Echo Show telemetry.</strong> 1,296 log entries across 12 namespaces, 2025-08-10 to 2026-01-16. Network, system and device-state data only.</li><li><strong>Echo Dot behavioural data.</strong> Voice utterances, call history, music activity, sensor readings, messaging and account settings, 2026-02-11 onward.</li><li><strong>The archive.</strong> 32 files in CSV, XLSX, HTML and JSON, delivered as a single ZIP.</li></ul><div class="gallery"><figure class="shot"><button type="button" data-lb="assets/img/alexa-sar-request-steps.webp" data-alt="Three phone screens showing the request for Alexa data in the Amazon app" data-cap="Exhibit ALX-02. Steps in the Amazon app to request the data and the confirmation message."><img src="assets/img/alexa-sar-request-steps.webp" alt="Three phone screens showing the request for Alexa data in the Amazon app" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-02</b>Steps in the Amazon app to request the data and the confirmation message.</figcaption></figure></div></section><section class="cs-sec" id="tools" aria-labelledby="tools-h"><header><span class="label t">06</span><h2 id="tools-h">Tools and technologies</h2></header><div class="skills-demo"><span>Amazon GDPR SAR</span><span>Python</span><span>Google Colaboratory</span><span>Magnet AXIOM Examine v9.10</span><span>Seaborn / Matplotlib</span></div><p style="margin-top:18px">No forensic tool was found that parses Amazon SAR archives in a standardised way. Google Colaboratory was the only viable analysis platform identified, and AXIOM served as a cross-check.</p></section><section class="cs-sec" id="acquisition" aria-labelledby="acquisition-h"><header><span class="label t">07</span><h2 id="acquisition-h">Acquisition methodology</h2></header><figure class="panel" style="margin-inline:0"><div class="ph-bar"><span>Acquisition workflow</span><b>Illustration</b></div><div class="pb"><div class="dscroll"><svg class="diagram" viewBox="0 0 960 170" role="img" aria-label="Acquisition workflow from scenario through SAR request to analysis and cross-tool check" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="40" width="136" height="70" stroke="#27C6B0" fill="#172238" stroke-width="1.4" /><text x="78" y="70" font-family="IBM Plex Mono,monospace" font-size="11" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">01</text><text x="78" y="94" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Scenario</text><line x1="146" y1="75" x2="166" y2="75" stroke="#27C6B0" stroke-width="1.5" /><path d="M166 75 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="166" y="40" width="136" height="70" stroke="#F0A45D" fill="#172238" stroke-width="1.4" /><text x="234" y="70" font-family="IBM Plex Mono,monospace" font-size="11" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">02</text><text x="234" y="94" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">SAR request</text><line x1="302" y1="75" x2="322" y2="75" stroke="#27C6B0" stroke-width="1.5" /><path d="M322 75 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="322" y="40" width="136" height="70" stroke="#27C6B0" fill="#172238" stroke-width="1.4" /><text x="390" y="70" font-family="IBM Plex Mono,monospace" font-size="11" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">03</text><text x="390" y="94" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Archive received</text><line x1="458" y1="75" x2="478" y2="75" stroke="#27C6B0" stroke-width="1.5" /><path d="M478 75 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="478" y="40" width="136" height="70" stroke="#27C6B0" fill="#172238" stroke-width="1.4" /><text x="546" y="70" font-family="IBM Plex Mono,monospace" font-size="11" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">04</text><text x="546" y="94" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Copy & organise</text><line x1="614" y1="75" x2="634" y2="75" stroke="#27C6B0" stroke-width="1.5" /><path d="M634 75 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="634" y="40" width="136" height="70" stroke="#27C6B0" fill="#172238" stroke-width="1.4" /><text x="702" y="70" font-family="IBM Plex Mono,monospace" font-size="11" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">05</text><text x="702" y="94" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">Colab analysis</text><line x1="770" y1="75" x2="790" y2="75" stroke="#27C6B0" stroke-width="1.5" /><path d="M790 75 l-7 -4 v8z" fill="#27C6B0" transform="rotate(0)"/><rect x="790" y="40" width="136" height="70" stroke="#27C6B0" fill="#172238" stroke-width="1.4" /><text x="858" y="70" font-family="IBM Plex Mono,monospace" font-size="11" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">06</text><text x="858" y="94" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">AXIOM check</text><text x="10" y="150" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">Original ZIP preserved unaltered. All analysis performed on working copies. No hash verification was possible (see limitations).</text></svg></div></div><div class="cap reconstruction">Explanatory diagram of the process described in the dissertation. Not an original screenshot.</div></figure><ol class="flow"><li><b>Scenario</b>Develop the simulated burglary and the two-device design.</li><li><b>Request</b>Submit the SAR through Amazon's privacy portal using the account holder's own login.</li><li><b>Receive</b>Archive delivered about a week after the request. Original ZIP kept unaltered.</li><li><b>Analyse copies</b>All processing done on working copies, with an audit trail of dates.</li></ol><p><strong>ACPO principles.</strong> The SAR route is read-only, so no data was altered at source. A record of request and receipt dates was kept.</p><p><span class="status s-lim">Limitation</span>Hash verification was not used, because the SAR process offers no independent source to verify against.</p></section><section class="cs-sec" id="analysis" aria-labelledby="analysis-h"><header><span class="label t">08</span><h2 id="analysis-h">Examination and analysis</h2></header><p>The work followed the eight stages below, using the dissertation's method.</p><ol class="flow"><li><b>Scenario</b>Research and scenario development.</li><li><b>SAR</b>Amazon GDPR Subject Access Request.</li><li><b>Organise</b>Acquire and organise the data.</li><li><b>Echo Show</b>Examine telemetry.</li><li><b>Echo Dot</b>Analyse behavioural artefacts.</li><li><b>Compare</b>Cross-device comparison.</li><li><b>Verify</b>Cross-tool check in Magnet AXIOM.</li><li><b>Evaluate</b>Findings and limitations.</li></ol><div class="gallery wide"><figure class="shot"><button type="button" data-lb="assets/img/alexa-axiom-evidence-view.webp" data-alt="Magnet AXIOM evidence view listing CSV documents from the Echo archive" data-cap="Exhibit ALX-03. Magnet AXIOM Examine showing 844 evidence items from the Echo archive."><img src="assets/img/alexa-axiom-evidence-view.webp" alt="Magnet AXIOM evidence view listing CSV documents from the Echo archive" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-03</b>Magnet AXIOM Examine showing 844 evidence items from the Echo archive.</figcaption></figure></div></section><section class="cs-sec" id="findings" aria-labelledby="findings-h"><header><span class="label t">09</span><h2 id="findings-h">Findings</h2></header><div class="legend" role="note" aria-label="Evidence status key"><span class="status s-conf">Confirmed</span>verified directly in the investigation output<span class="status s-rec">Recovered</span>artefact recovered from the evidence<span class="status s-pot">Potential</span>present but not shown to be user-initiated<span class="status s-int">Interpretation</span>analytical reading<span class="status s-hyp">Hypothesis</span>working idea, untested<span class="status s-lim">Limitation</span>constraint on what can be claimed</div><div class="dvs"><div class="show"><span class="label a">Echo Show</span><h3>Echo Show</h3><p class="big">Evidence relating primarily to technical device activity.</p><ul><li>Wi-Fi signal and network configuration</li><li>Device uptime and firmware integrity</li><li>One precisely timed connectivity anomaly</li></ul></div><div class="dot"><span class="label t">Echo Dot</span><h3>Echo Dot</h3><p class="big">Evidence relating primarily to human behaviour.</p><ul><li>Spoken commands with timestamps</li><li>Drop-In calls, music history, sensor readings</li><li>Partial messaging content</li></ul></div></div><h3>Echo Show: technical device activity</h3><ul class="findlist"><li><span class="status s-conf">Confirmed</span><span><strong>Network identity.</strong> The same router identity and network were reported across all 108 Wi-Fi entries over 160 days, on WPA2-PSK. Identifiers are withheld on this page.</span></li><li><span class="status s-conf">Confirmed</span><span><strong>Firmware.</strong> Update count was 0 across 108 entries and one OS version was recorded throughout.</span></li><li><span class="status s-conf">Confirmed</span><span><strong>Uptime.</strong> The boot counter increased steadily across the 160 days, so no reboot or power cycle was recorded.</span></li><li><span class="status s-conf">Confirmed</span><span><strong>Connectivity anomaly.</strong> A 16-second outage on 2025-08-10 between 21:54:04Z and 21:54:20Z. A latency peak of 2,613 ms on the same date came from a second namespace.</span></li><li><span class="status s-rec">Recovered</span><span><strong>Private network only.</strong> 108 captive-portal entries were blank, consistent with no public Wi-Fi use.</span></li><li><span class="status s-lim">Limitation</span><span><strong>No user records.</strong> The Echo Show export held no voice, call or message artefacts. A separate SAR export would be needed.</span></li></ul><h3>Echo Dot: human behaviour</h3><ul class="findlist"><li><span class="status s-rec">Recovered</span><span><strong>Voice utterances.</strong> The dissertation reports 110 recoverable utterances, each with a millisecond timestamp. Music and playback was the largest category.</span></li><li><span class="status s-rec">Recovered</span><span><strong>Drop-In.</strong> Two incoming events: 2026-02-16 (63 s) and 2026-02-19 (33 s), both with audio and video streams, classed PRIVATE.</span></li><li><span class="status s-rec">Recovered</span><span><strong>Music history.</strong> 61 tracks across Amazon Music and Apple Music, with track-level detail.</span></li><li><span class="status s-rec">Recovered</span><span><strong>Temperature sensor.</strong> 1,025 readings, mean 21.3 °C, range 19.1 to 24.2 °C. This sensor is specific to the 5th generation Echo Dot.</span></li><li><span class="status s-rec">Recovered</span><span><strong>Messaging.</strong> Two threads with partial content from test messages on 2026-03-06.</span></li><li><span class="status s-lim">Limitation</span><span><strong>Speaker attribution gap.</strong> No active voice profile was shown in two snapshots, so speech cannot be tied to a speaker.</span></li></ul><h3>What an unexplained status can and cannot show</h3><p><span class="status s-int">Interpretation</span>The Echo Dot logged 127 connectivity entries: 60 OK and 67 UNREACHABLE (52.8%). In the controlled test, every power cycle between sessions produced an UNREACHABLE entry. Taken alone, such entries cannot prove interference.</p><h3>Cross-device comparison</h3><div class="tbl"><table><thead><tr><th scope="col">Artefact category</th><th scope="col">Echo Show</th><th scope="col">Echo Dot</th><th scope="col">Why it matters</th></tr></thead><tbody><tr><td class="">Device uptime and reboot history</td><td class="y">Present</td><td class="n">Absent</td><td class="">Supports that the device was not powered off or reset.</td></tr><tr><td class="">Firmware and update history</td><td class="y">Present</td><td class="n">Absent</td><td class="">Integrity can be assessed for the Echo Show only.</td></tr><tr><td class="">Network identity</td><td class="y">Present</td><td class="n">Absent</td><td class="">Supports location checks from the Echo Show only.</td></tr><tr><td class="">Latency and anomaly logs</td><td class="y">Present</td><td class="n">Absent</td><td class="">Only the Echo Show can evidence a network disturbance.</td></tr><tr><td class="">Captive portal / network type</td><td class="y">Present</td><td class="n">Absent</td><td class="">Indicates a private network throughout.</td></tr><tr><td class="">Voice utterances with timestamps</td><td class="n">Absent</td><td class="y">Present</td><td class="">Only the Echo Dot can show whether anyone spoke to it.</td></tr><tr><td class="">Music and media activity</td><td class="n">Absent</td><td class="y">Present</td><td class="">Can place a person using the device at a given time.</td></tr><tr><td class="">Call and Drop-In history</td><td class="n">Absent</td><td class="y">Present</td><td class="">Can show real-time communication.</td></tr><tr><td class="">Messaging artefacts</td><td class="n">Absent</td><td class="y">Present</td><td class="">Partial content was recovered.</td></tr></tbody></table></div></section><section class="cs-sec" id="dashboard" aria-labelledby="dashboard-h"><header><span class="label t">10</span><h2 id="dashboard-h">Data visualisations</h2></header><p>Charts below use figures stated in the dissertation. Where a source chart is shown as an image, it is the original output from the analysis.</p><figure class="panel" style="margin-inline:0"><div class="ph-bar"><span>Device activity timeline</span><b>Drawn to scale</b></div><div class="pb"><div class="dscroll"><svg class="diagram" viewBox="0 0 960 300" role="img" aria-label="Timeline of the Echo Show capture window and the Echo Dot capture window with the 16 second anomaly marked on 10 August 2025" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="400" y1="0" x2="400" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="440" y1="0" x2="440" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="480" y1="0" x2="480" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="520" y1="0" x2="520" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="560" y1="0" x2="560" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="600" y1="0" x2="600" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="640" y1="0" x2="640" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="680" y1="0" x2="680" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="720" y1="0" x2="720" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="760" y1="0" x2="760" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="800" y1="0" x2="800" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="840" y1="0" x2="840" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="880" y1="0" x2="880" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="920" y1="0" x2="920" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="960" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="960" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="960" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="960" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="960" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="960" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="960" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="960" y2="280" stroke="#1D2B40" stroke-width="1" /><line x1="60" y1="230" x2="920" y2="230" stroke="#A5AFBF" stroke-width="1" /><line x1="60.0" y1="226" x2="60.0" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="60.0" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Aug 25</text><line x1="150.5263157894737" y1="226" x2="150.5263157894737" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="150.5263157894737" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Sep</text><line x1="273.9712918660287" y1="226" x2="273.9712918660287" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="273.9712918660287" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Oct</text><line x1="401.53110047846894" y1="226" x2="401.53110047846894" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="401.53110047846894" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Nov</text><line x1="524.976076555024" y1="226" x2="524.976076555024" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="524.976076555024" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Dec</text><line x1="652.5358851674641" y1="226" x2="652.5358851674641" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="652.5358851674641" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Jan 26</text><line x1="780.0956937799043" y1="226" x2="780.0956937799043" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="780.0956937799043" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Feb</text><line x1="895.311004784689" y1="226" x2="895.311004784689" y2="238" stroke="#A5AFBF" stroke-width="1" /><text x="895.311004784689" y="256" font-family="IBM Plex Mono,monospace" font-size="11" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Mar</text><rect x="60.0" y="70" width="658.3732057416267" height="44" stroke="#F0A45D" fill="rgba(240,164,93,.14)" stroke-width="1.5" /><text x="70.0" y="97" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F0A45D" text-anchor="start" font-weight="500" letter-spacing="0">ECHO SHOW · 160 days · 1,296 log entries</text><rect x="821.2440191387559" y="150" width="94.64114832535893" height="44" stroke="#27C6B0" fill="rgba(39,198,176,.14)" stroke-width="1.5" /><text x="811.2440191387559" y="177" font-family="IBM Plex Mono,monospace" font-size="12" fill="#27C6B0" text-anchor="end" font-weight="500" letter-spacing="0">ECHO DOT · 23 days</text><line x1="60.0" y1="50" x2="60.0" y2="230" stroke="#F0A45D" stroke-width="1.5" stroke-dasharray="4 3"/><text x="68.0" y="44" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="#F0A45D" text-anchor="start" font-weight="500" letter-spacing="0">2025-08-10 · 21:54:04Z to 21:54:20Z · 16 s connectivity anomaly</text><circle cx="60.0" cy="92" r="5" fill="#F0A45D"/><text x="718.3732057416267" y="134" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">capture ends 2026-01-16</text><text x="821.2440191387559" y="212" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">2026-02-11</text><text x="915.8851674641148" y="212" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">03-06</text><text x="743.0622009569379" y="78" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">No overlap between</text><text x="743.0622009569379" y="92" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">the two capture windows</text><text x="60" y="290" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">Dates from the dissertation. Axis is calendar time, spans are drawn to scale.</text></svg></div></div><div class="cap">Echo Show and Echo Dot capture windows, with the 16-second anomaly on the first day of the Echo Show data.</div></figure><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px"><figure class="panel" style="margin-inline:0"><div class="ph-bar"><span>Connectivity events</span><b>Echo Dot</b></div><div class="pb"><svg class="diagram" viewBox="0 0 560 230" role="img" aria-label="Bar showing 60 OK and 67 UNREACHABLE connectivity entries out of 127" xmlns="http://www.w3.org/2000/svg"><text x="0" y="18" font-family="IBM Plex Mono,monospace" font-size="12" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="0">Echo Dot · EndpointHealth.connectivity · 127 entries</text><rect x="0" y="40" width="226.77165354330708" height="44" stroke="#27C6B0" fill="rgba(39,198,176,.25)" stroke-width="1.5" /><rect x="226.77165354330708" y="40" width="253.22834645669292" height="44" stroke="#F0A45D" fill="rgba(240,164,93,.25)" stroke-width="1.5" /><text x="113.38582677165354" y="68" font-family="IBM Plex Mono,monospace" font-size="15" fill="#27C6B0" text-anchor="middle" font-weight="500" letter-spacing="0">OK · 60</text><text x="353.38582677165357" y="68" font-family="IBM Plex Mono,monospace" font-size="15" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">UNREACHABLE · 67</text><text x="353.38582677165357" y="106" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F0A45D" text-anchor="middle" font-weight="400" letter-spacing="0">52.8%</text><text x="0" y="150" font-family="IBM Plex Mono,monospace" font-size="12.5" fill="#F4F5F7" text-anchor="start" font-weight="400" letter-spacing="0">Each power cycle between scheduled sessions produced an UNREACHABLE</text><text x="0" y="170" font-family="IBM Plex Mono,monospace" font-size="12.5" fill="#F4F5F7" text-anchor="start" font-weight="400" letter-spacing="0">transition. The count reflects the test design, not interference.</text><text x="0" y="204" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">Source: dissertation section 4.2.2. Bar drawn to scale.</text></svg></div><div class="cap">60 OK entries and 67 UNREACHABLE out of 127.</div></figure><figure class="panel" style="margin-inline:0"><div class="ph-bar"><span>Data category breakdown</span><b>Magnet AXIOM</b></div><div class="pb"><svg class="diagram" viewBox="0 0 560 250" role="img" aria-label="Bar chart of Magnet AXIOM evidence items: media 728, documents 110, communication 5, operating system 1" xmlns="http://www.w3.org/2000/svg"><text x="0" y="18" font-family="IBM Plex Mono,monospace" font-size="12" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="0">Magnet AXIOM · 844 evidence items</text><text x="0" y="64" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="start" font-weight="400" letter-spacing="0">Media</text><rect x="150" y="44" width="330.0" height="28" stroke="#27C6B0" fill="rgba(255,255,255,.04)" stroke-width="1.5" /><text x="490.0" y="64" font-family="IBM Plex Mono,monospace" font-size="14" fill="#27C6B0" text-anchor="start" font-weight="500" letter-spacing="0">728</text><text x="0" y="112" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="start" font-weight="400" letter-spacing="0">Documents (CSV)</text><rect x="150" y="92" width="49.862637362637365" height="28" stroke="#F0A45D" fill="rgba(255,255,255,.04)" stroke-width="1.5" /><text x="209.86263736263737" y="112" font-family="IBM Plex Mono,monospace" font-size="14" fill="#F0A45D" text-anchor="start" font-weight="500" letter-spacing="0">110</text><text x="0" y="160" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="start" font-weight="400" letter-spacing="0">Communication</text><rect x="150" y="140" width="3" height="28" stroke="#A5AFBF" fill="rgba(255,255,255,.04)" stroke-width="1.5" /><text x="163" y="160" font-family="IBM Plex Mono,monospace" font-size="14" fill="#F4F5F7" text-anchor="start" font-weight="500" letter-spacing="0">5</text><text x="0" y="208" font-family="IBM Plex Mono,monospace" font-size="13" fill="#F4F5F7" text-anchor="start" font-weight="400" letter-spacing="0">Operating system</text><rect x="150" y="188" width="3" height="28" stroke="#A5AFBF" fill="rgba(255,255,255,.04)" stroke-width="1.5" /><text x="163" y="208" font-family="IBM Plex Mono,monospace" font-size="14" fill="#F4F5F7" text-anchor="start" font-weight="500" letter-spacing="0">1</text><text x="0" y="240" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">Source: dissertation section 4.5. Bars drawn to scale.</text></svg></div><div class="cap">844 items, drawn to scale.</div></figure></div><div class="gallery wide"><figure class="shot"><button type="button" data-lb="assets/img/alexa-utterance-analysis.webp" data-alt="Bar charts of Echo Dot voice utterance categories and utterances by hour of day" data-cap="Exhibit ALX-04 · Speech analysis. Voice utterance categories and hours of day (UTC) from the Colab analysis."><img src="assets/img/alexa-utterance-analysis.webp" alt="Bar charts of Echo Dot voice utterance categories and utterances by hour of day" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-04 · Speech analysis</b>Voice utterance categories and hours of day (UTC) from the Colab analysis.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-artefact-availability.webp" data-alt="Bar chart comparing which artefact types are present on the Echo Show and the Echo Dot" data-cap="Exhibit ALX-05 · Device comparison. Artefact availability for Echo Show and Echo Dot."><img src="assets/img/alexa-artefact-availability.webp" alt="Bar chart comparing which artefact types are present on the Echo Show and the Echo Dot" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-05 · Device comparison</b>Artefact availability for Echo Show and Echo Dot.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-connectivity-state.webp" data-alt="Stacked bars of connectivity OK and UNREACHABLE events by date" data-cap="Exhibit ALX-06 · Connectivity. Device connectivity state over time, as captioned in the dissertation."><img src="assets/img/alexa-connectivity-state.webp" alt="Stacked bars of connectivity OK and UNREACHABLE events by date" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-06 · Connectivity</b>Device connectivity state over time, as captioned in the dissertation.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-temperature-readings.webp" data-alt="Line chart of Echo Dot temperature readings with a mean of 21.3 degrees Celsius" data-cap="Exhibit ALX-07 · Sensor. 1,025 Echo Dot temperature readings with the mean marked."><img src="assets/img/alexa-temperature-readings.webp" alt="Line chart of Echo Dot temperature readings with a mean of 21.3 degrees Celsius" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-07 · Sensor</b>1,025 Echo Dot temperature readings with the mean marked.</figcaption></figure></div><div class="note-box"><b>Open check</b>The category bars in the source utterance figure add up to 70, while the text reports 110 utterances. The figure is shown as originally produced, and the total should be reconciled before publication.</div></section><section class="cs-sec" id="gallery" aria-labelledby="gallery-h"><header><span class="label t">11</span><h2 id="gallery-h">Visual evidence gallery</h2></header><p>Original project images, shown at their source resolution. Select an image to enlarge it. Identifiers have been removed or cropped.</p><div class="gallery"><figure class="shot"><button type="button" data-lb="assets/img/alexa-echo-devices.webp" data-alt="Project photograph of an Amazon Echo Dot and an Echo Show" data-cap="Exhibit ALX-01. Project photograph of the two devices."><img src="assets/img/alexa-echo-devices.webp" alt="Project photograph of an Amazon Echo Dot and an Echo Show" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-01</b>Project photograph of the two devices.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-sar-request-steps.webp" data-alt="Phone screens showing the Amazon data request steps" data-cap="Exhibit ALX-02. Requesting the data from the Amazon app."><img src="assets/img/alexa-sar-request-steps.webp" alt="Phone screens showing the Amazon data request steps" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-02</b>Requesting the data from the Amazon app.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-axiom-evidence-view.webp" data-alt="Magnet AXIOM evidence view of the Echo archive" data-cap="Exhibit ALX-03. AXIOM evidence view of the archive."><img src="assets/img/alexa-axiom-evidence-view.webp" alt="Magnet AXIOM evidence view of the Echo archive" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-03</b>AXIOM evidence view of the archive.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-utterance-analysis.webp" data-alt="Charts of Echo Dot voice utterances" data-cap="Exhibit ALX-04. Utterance analysis."><img src="assets/img/alexa-utterance-analysis.webp" alt="Charts of Echo Dot voice utterances" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-04</b>Utterance analysis.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-artefact-availability.webp" data-alt="Chart comparing artefact availability across the two devices" data-cap="Exhibit ALX-05. Device comparison."><img src="assets/img/alexa-artefact-availability.webp" alt="Chart comparing artefact availability across the two devices" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-05</b>Device comparison.</figcaption></figure><figure class="shot"><button type="button" data-lb="assets/img/alexa-temperature-readings.webp" data-alt="Line chart of temperature sensor readings" data-cap="Exhibit ALX-07. Temperature readings."><img src="assets/img/alexa-temperature-readings.webp" alt="Line chart of temperature sensor readings" loading="lazy" decoding="async"></button><figcaption><b>Exhibit ALX-07</b>Temperature readings.</figcaption></figure></div></section><section class="cs-sec" id="limits" aria-labelledby="limits-h"><header><span class="label t">12</span><h2 id="limits-h">Limitations and challenges</h2></header><ul class="findlist"><li><span class="status s-lim">Limitation</span><span><strong>Limited data scope.</strong> One account and two devices limit how far results generalise.</span></li><li><span class="status s-lim">Limitation</span><span><strong>No hash verification.</strong> The SAR process offers no independent source to verify against, which limits formal chain of custody.</span></li><li><span class="status s-lim">Limitation</span><span><strong>No standard tooling.</strong> No forensic tool parses Amazon SAR data. AXIOM treated the archive as generic documents and did not reconstruct cross-file timelines or surface the connectivity warnings.</span></li><li><span class="status s-lim">Limitation</span><span><strong>Platform choice.</strong> Google Colaboratory was the viable analytical platform, but it sends data to Google's servers, which raises chain-of-custody questions in formal settings.</span></li><li><span class="status s-lim">Limitation</span><span><strong>No coordinates.</strong> The export held no latitude or longitude.</span></li><li><span class="status s-lim">Limitation</span><span><strong>Deleted data and third parties.</strong> Data deleted before the request cannot be recovered, and the archive may hold other people's personal data.</span></li></ul></section><section class="cs-sec" id="skills" aria-labelledby="skills-h"><header><span class="label t">13</span><h2 id="skills-h">Technical skills demonstrated</h2></header><div class="skills-demo"><span>Cloud evidence acquisition</span><span>Data access requests</span><span>Python analysis</span><span>Timeline reconstruction</span><span>Artefact taxonomy</span><span>Cross-tool verification</span><span>Data visualisation</span><span>Limitation analysis</span></div></section><section class="cs-sec" id="takeaway" aria-labelledby="takeaway-h"><header><span class="label t">14</span><h2 id="takeaway-h">Final investigative takeaway</h2></header><div class="takeaway"><p>Cross-device analysis gives a more complete forensic picture than examining either device on its own.</p><small>The Echo Dot shows what a person did. The Echo Show shows what the device and network did. The 16-second anomaly is a precisely timed lead, but this research does not claim it proves the simulated burglary. It is an academic investigation, not a criminal prosecution.</small></div></section>
+<nav class="next" aria-label="Case study navigation"><a href="uc-browser-forensics.html"><span class="label">&larr; Previous investigation</span><b>UC Browser Forensics</b></a><a href="raid-windows-forensics.html"><span class="label">Next investigation &rarr;</span><b>RAID Reconstruction & Windows Forensics</b></a></nav>
+</div></div></main><footer class="site"><div class="wrap">
+<div class="foot">
+<div class="about-f"><p class="big"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p><p style="color:var(--fg2);margin:8px 0 0">Digital Forensics &amp; Cyber Investigations.</p>
+<p style="color:var(--fg2);font-size:14px;margin-top:18px">Academic forensic case studies. Scenarios are simulations built for research and assessment, not live prosecutions.</p></div>
+<div class="col"><h4>Navigate</h4><ul><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations">Investigations</a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li></ul></div>
+<div class="col"><h4>Investigations</h4><ul><li><a href="alexa-iot-forensics.html">Amazon Alexa IoT Forensics</a></li><li><a href="raid-windows-forensics.html">RAID Reconstruction & Windows Forensics</a></li><li><a href="snapchat-mobile-forensics.html">Snapchat Mobile Forensics</a></li><li><a href="uc-browser-forensics.html">UC Browser Forensics</a></li></ul></div>
+<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul></div>
+</div>
+<div class="foot-bot"><span>&copy; <span class="yr">2026</span> <span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></span><em>Investigate. Analyse. Understand.</em></div>
+</div></footer><div class="toast" role="status" aria-live="polite"></div>
+<script>(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* mobile menu */
+var mb=$('.menu-btn'),nl=$('#navlist');
+if(mb&&nl){
+  mb.addEventListener('click',function(){var o=nl.classList.toggle('open');mb.setAttribute('aria-expanded',o);});
+  $$('a',nl).forEach(function(a){a.addEventListener('click',function(){nl.classList.remove('open');mb.setAttribute('aria-expanded','false');});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nl.classList.contains('open')){nl.classList.remove('open');mb.setAttribute('aria-expanded','false');mb.focus();}});
+}
+
+/* scroll progress */
+var bar=$('.progress');
+function prog(){if(!bar)return;var h=document.documentElement.scrollHeight-innerHeight;bar.style.transform='scaleX('+(h>0?Math.min(1,scrollY/h):0)+')';}
+addEventListener('scroll',prog,{passive:true});prog();
+
+/* scrollspy: nav links (home) and table of contents (case studies) */
+function spy(links,attr){
+  if(!links.length||!('IntersectionObserver' in window))return;
+  var map={};links.forEach(function(a){var id=a.getAttribute('href').split('#')[1];if(id){var el=document.getElementById(id);if(el)map[id]={a:a,el:el};}});
+  var ids=Object.keys(map);if(!ids.length)return;
+  function update(){
+    var y=scrollY+140,cur=null;
+    ids.forEach(function(id){if(map[id].el.offsetTop<=y)cur=id;});
+    links.forEach(function(a){a.removeAttribute(attr==='aria-current'?'aria-current':'x');a.classList.remove('on');});
+    if(cur){var a=map[cur].a;if(attr==='aria-current')a.setAttribute('aria-current','true');else a.classList.add('on');}
+  }
+  addEventListener('scroll',update,{passive:true});update();
+}
+spy($$('.nav ul a[href*="#"]').filter(function(a){return !/^(https?:)?\/\//.test(a.getAttribute('href'))&&document.getElementById((a.getAttribute('href').split('#')[1]||'__'))}),'aria-current');
+spy($$('.toc a'),'on');
+
+/* project filter */
+var fchips=$$('.filters .chip');
+fchips.forEach(function(c){c.addEventListener('click',function(){
+  fchips.forEach(function(x){x.setAttribute('aria-pressed',x===c)});
+  var f=c.getAttribute('data-f'),n=0;
+  $$('.card[data-d]').forEach(function(k){var ok=f==='all'||k.getAttribute('data-d').split(' ').indexOf(f)>-1;k.hidden=!ok;if(ok)n++;});
+  var st=$('#filter-status');if(st)st.textContent=n+(n===1?' investigation shown':' investigations shown');
+});});
+
+/* methodology tabs */
+var mt=$$('.method [role="tab"]'),mp=$('#method-panel');
+if(mt.length&&mp){
+  var M=JSON.parse($('#method-data').textContent);
+  function sel(i,focus){mt.forEach(function(t,j){t.setAttribute('aria-selected',i===j);t.tabIndex=i===j?0:-1;});
+    mp.innerHTML='<h3></h3><p></p>';$('h3',mp).textContent=M[i].t;$('p',mp).textContent=M[i].d;if(focus)mt[i].focus();}
+  mt.forEach(function(t,i){t.addEventListener('click',function(){sel(i)});
+    t.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='ArrowDown'){e.preventDefault();sel((i+1)%mt.length,1)}else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();sel((i+mt.length-1)%mt.length,1)}});});
+  sel(0);
+}
+
+/* tool cards */
+$$('.skillcat').forEach(function(cat){
+  var d=$('.tooldesc',cat),tools=$$('.tool',cat);
+  tools.forEach(function(t){t.addEventListener('click',function(){
+    tools.forEach(function(x){x.setAttribute('aria-expanded',x===t)});
+    d.innerHTML='';var b=document.createElement('b');b.textContent=t.textContent+'. ';d.appendChild(b);d.appendChild(document.createTextNode(t.getAttribute('data-how')));
+  });});
+  if(tools[0])tools[0].click();
+});
+
+/* toast */
+var toast=$('.toast');var tt;
+function say(m){if(!toast)return;toast.textContent=m;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show')},3800);}
+$$('[data-soon]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();say(a.getAttribute('data-soon'));});});
+
+/* lightbox */
+var shots=$$('[data-lb]');
+if(shots.length){
+  var lb=document.createElement('div');lb.className='lb';lb.setAttribute('role','dialog');lb.setAttribute('aria-modal','true');lb.setAttribute('aria-label','Image viewer');
+  lb.innerHTML='<div class="lb-bar"><span class="cnt" aria-live="polite"></span><div class="lb-btns"><button type="button" data-a="prev" aria-label="Previous image">&larr;</button><button type="button" data-a="next" aria-label="Next image">&rarr;</button><button type="button" data-a="size" aria-label="Toggle actual size">1:1</button><button type="button" data-a="close" aria-label="Close viewer">Close</button></div></div><div class="lb-stage"><img alt=""></div><div class="lb-cap"></div>';
+  document.body.appendChild(lb);
+  var img=$('img',lb),cap=$('.lb-cap',lb),cnt=$('.cnt',lb),idx=0,last=null;
+  function show(i){idx=(i+shots.length)%shots.length;var s=shots[idx];img.classList.remove('nat');img.src=s.getAttribute('data-lb');img.alt=s.getAttribute('data-alt')||'';cap.textContent=s.getAttribute('data-cap')||'';cnt.textContent=(idx+1)+' / '+shots.length;}
+  function open(i){last=document.activeElement;show(i);lb.classList.add('open');document.body.style.overflow='hidden';$('[data-a=close]',lb).focus();}
+  function close(){lb.classList.remove('open');document.body.style.overflow='';if(last)last.focus();}
+  shots.forEach(function(s,i){s.addEventListener('click',function(){open(i)});});
+  lb.addEventListener('click',function(e){var a=e.target.getAttribute&&e.target.getAttribute('data-a');
+    if(a==='close'||e.target===$('.lb-stage',lb))close();else if(a==='prev')show(idx-1);else if(a==='next')show(idx+1);else if(a==='size')img.classList.toggle('nat');});
+  document.addEventListener('keydown',function(e){if(!lb.classList.contains('open'))return;
+    if(e.key==='Escape')close();else if(e.key==='ArrowLeft')show(idx-1);else if(e.key==='ArrowRight')show(idx+1);
+    else if(e.key==='Tab'){var f=$$('button',lb),fi=f.indexOf(document.activeElement);if(e.shiftKey&&fi<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&fi===f.length-1){e.preventDefault();f[0].focus()}}});
+}
+
+/* contact form: validation and confirmation state. No message is sent. */
+var form=$('#contact-form');
+if(form){
+  var ok=$('#form-ok');
+  function bad(id,on){var f=$('#'+id).closest('.field');f.classList.toggle('bad',on);$('#'+id).setAttribute('aria-invalid',on);}
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var n=$('#f-name').value.trim(),m=$('#f-mail').value.trim(),t=$('#f-msg').value.trim();
+    var vn=n.length>1,vm=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m),vt=t.length>=10;
+    bad('f-name',!vn);bad('f-mail',!vm);bad('f-msg',!vt);
+    if(!(vn&&vm&&vt)){var first=$('.field.bad input,.field.bad textarea',form);if(first)first.focus();return;}
+    form.hidden=true;ok.classList.add('show');ok.focus();
+  });
+  var again=$('#form-again');if(again)again.addEventListener('click',function(){form.reset();form.hidden=false;ok.classList.remove('show');$('#f-name').focus();});
+}
+})();
+
+document.querySelectorAll('.yr').forEach(function(e){e.textContent=new Date().getFullYear()});</script></body></html>

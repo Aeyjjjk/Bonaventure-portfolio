@@ -18,3 +18,5 @@ Add a function in `src/cases.py` that returns `case_page(...)` with a list of `(
 
 ## Privacy checklist before publishing
 Screenshots from the source reports contained a student ID, university branding, names, emails, serial numbers and MAC/IP addresses. Only cropped images are included. Check any new image at full size before adding it, and strip metadata when exporting.
+
+## Then other add-ons

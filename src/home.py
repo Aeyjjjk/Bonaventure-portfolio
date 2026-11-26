@@ -290,7 +290,7 @@ def skills():
 def contact():
     return f'''<section class="alt" id="contact" aria-labelledby="c-h"><div class="wrap"><div class="contact">
 <h2 id="c-h">Have an investigation, research opportunity or technical collaboration in mind?</h2>
-<div class="ways"><dl><div><dt>Email</dt><dd><span class="ph">[PROFESSIONAL EMAIL]</span></dd></div><div><dt>LinkedIn</dt><dd><a href="#" data-soon="Add your LinkedIn URL in place of [LINKEDIN URL].">[LINKEDIN URL]</a></dd></div><div><dt>GitHub</dt><dd><a href="#" data-soon="Add your GitHub URL in place of [GITHUB URL].">[GITHUB URL]</a></dd></div><div><dt>Location</dt><dd>[LOCATION]</dd></div><div><dt>CV</dt><dd>{cvlinks("", "Download CV (PDF)", False)}</dd></div></dl></div>
+<div class="ways"><dl><div><dt>Email</dt><dd><a href="mailto:ogbonna1.ugwuja@gmail.com">ogbonna1.ugwuja@gmail.com</a></dd></div><div><dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/ogbonna-ugwuja-bonaventure/" target="_blank" rel="noopener">linkedin.com/in/ogbonna-ugwuja-bonaventure</a></dd></div><div><dt>GitHub</dt><dd><a href="#" data-soon="Add your GitHub URL in place of [GITHUB URL].">[GITHUB URL]</a></dd></div><div><dt>Location</dt><dd>[LOCATION]</dd></div><div><dt>CV</dt><dd>{cvlinks("", "Download CV (PDF)", False)}</dd></div></dl></div>
 <form id="contact-form" novalidate aria-label="Contact form">
 <div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name"><span class="err">Enter your name.</span></div>
 <div class="field"><label for="f-mail">Email</label><input id="f-mail" name="email" type="email" autocomplete="email"><span class="err">Enter a valid email address.</span></div>

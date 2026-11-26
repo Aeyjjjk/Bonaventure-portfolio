@@ -15,7 +15,7 @@ EDU_BENG = '<div class="row" style="margin-top:6px"><b>BEng Electrical/Electroni
 def top(role_line):
     return ('<div class="top"><h1><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></h1>'
             f'<div class="role">{role_line}</div>'
-            '<div class="contact"><span class="ph">[PROFESSIONAL EMAIL]</span> &nbsp;·&nbsp; <span class="ph">[LINKEDIN URL]</span> &nbsp;·&nbsp; <span class="ph">[GITHUB URL]</span> &nbsp;·&nbsp; <span class="ph">[LOCATION]</span></div></div>')
+            '<div class="contact">ogbonna1.ugwuja@gmail.com &nbsp;·&nbsp; linkedin.com/in/ogbonna-ugwuja-bonaventure &nbsp;·&nbsp; <span class="ph">[GITHUB URL]</span> &nbsp;·&nbsp; <span class="ph">[LOCATION]</span></div></div>')
 
 def foot(n, t): return f'<div class="foot"><span>Curriculum vitae</span><span>{n} / {t}</span></div>'
 

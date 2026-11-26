@@ -100,7 +100,7 @@ def footer(prefix):
 <p style="color:var(--fg2);font-size:14px;margin-top:18px" data-for="forensics soc">Academic and training case studies. Scenarios are simulations built for research and assessment, not live engagements.</p></div>
 <div class="col"><h4>Navigate</h4><ul><li><a href="{p}#about">About</a></li><li><a href="{p}#investigations">Investigations</a></li><li><a href="{p}#skills">Skills</a></li><li><a href="{p}#contact">Contact</a></li></ul></div>
 <div class="col"><h4><span data-for="forensics soc">Investigations</span><span data-for="electrical">Experience</span></h4>{pl}</div>
-<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li>{cvlinks("cvl")}</li></ul></div>
+<div class="col"><h4>Contact</h4><ul><li><a href="mailto:ogbonna1.ugwuja@gmail.com">ogbonna1.ugwuja@gmail.com</a></li><li><a href="https://www.linkedin.com/in/ogbonna-ugwuja-bonaventure/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li>{cvlinks("cvl")}</li></ul></div>
 </div>
 <div class="foot-bot"><span>&copy; <span class="yr">2026</span> {NAME}</span><em>Investigate. Analyse. Understand.</em></div>
 </div></footer><div class="toast" role="status" aria-live="polite"></div>'''

@@ -152,4 +152,45 @@ if(form){
   });
   var again=$('#form-again');if(again)again.addEventListener('click',function(){form.reset();form.hidden=false;ok.classList.remove('show');$('#f-name').focus();});
 }
+
+/* collapsible home sections: closed until the reader scrolls to them (or presses the button) */
+var folds=$$('[data-fold]');
+if(folds.length){
+  folds.forEach(function(sec){
+    $$('.sec-head',sec).forEach(function(head){
+      var body=document.createElement('div'),inn=document.createElement('div');
+      body.className='fold-body';inn.className='fold-in';
+      while(head.nextSibling)inn.appendChild(head.nextSibling);
+      body.appendChild(inn);head.parentNode.appendChild(body);
+      var btn=document.createElement('button');btn.type='button';btn.className='fold-btn';btn.setAttribute('aria-expanded','false');
+      btn.innerHTML='<span class="o">Show section</span><span class="c">Hide section</span>';
+      btn.addEventListener('click',function(){setFold(sec,!sec.classList.contains('open'));sec.setAttribute('data-manual','1');});
+      head.appendChild(btn);
+    });
+    sec.classList.add('fold-ready');
+  });
+  function setFold(sec,open){sec.classList.toggle('open',open);$$('.fold-btn',sec).forEach(function(b){b.setAttribute('aria-expanded',open);});}
+  var hold=false,ht=null,fo=null;
+  if('IntersectionObserver' in window){
+    fo=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(hold||!e.isIntersecting||e.target.getAttribute('data-manual'))return;
+      setFold(e.target,true);fo.unobserve(e.target);
+    });},{rootMargin:'0px 0px -30% 0px'});
+    folds.forEach(function(s){fo.observe(s);});
+  }else{folds.forEach(function(s){setFold(s,true);});}
+  /* a jump to a section opens only that section, so the page does not shift while it scrolls */
+  function jump(id){
+    var t=id&&document.getElementById(id);if(!t)return;
+    var sec=t.hasAttribute('data-fold')?t:(t.closest?t.closest('[data-fold]'):null);
+    hold=true;
+    if(sec){sec.classList.add('noanim');setFold(sec,true);if(fo)fo.unobserve(sec);setTimeout(function(){sec.classList.remove('noanim');},60);}
+    clearTimeout(ht);
+    ht=setTimeout(function(){hold=false;if(fo)folds.forEach(function(s){if(!s.classList.contains('open')){fo.unobserve(s);fo.observe(s);}});},1400);
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest?e.target.closest('a[href^="#"]'):null;
+    if(a)jump(a.getAttribute('href').slice(1));
+  });
+  if(location.hash)jump(location.hash.slice(1));
+}
 })();

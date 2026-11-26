@@ -449,3 +449,20 @@ pre.code{background:var(--bg2);border:1px solid var(--line);padding:16px;overflo
 @media(max-width:1440px){.rs-head .l{display:none}.rs-head .s{display:inline}.nav{gap:18px}}
 @media(max-width:1180px){.rs-head{display:inline-flex}}
 @media(max-width:1060px){.rs-head{display:none}}
+
+/* collapsible sections */
+.fold-btn{display:none}
+[data-fold].fold-ready .fold-btn{display:inline-flex;align-items:center;margin-top:18px;min-height:40px;padding:0 16px;background:none;border:1px solid var(--line);color:var(--teal);font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+[data-fold].fold-ready .fold-btn:hover{border-color:var(--teal)}
+.fold-btn .c{display:none}
+[data-fold].open .fold-btn .o{display:none}
+[data-fold].open .fold-btn .c{display:inline}
+.fold-body{display:block}
+[data-fold].fold-ready .fold-body{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .5s cubic-bezier(.2,.7,.2,1),visibility 0s .5s}
+[data-fold].fold-ready.open .fold-body{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .5s cubic-bezier(.2,.7,.2,1),visibility 0s}
+[data-fold].fold-ready .fold-in{overflow:hidden;min-height:0}
+@media(prefers-reduced-motion:reduce){[data-fold].fold-ready .fold-body{transition:none}}
+.contact .ways{grid-column:1/9}
+@media(max-width:900px){.contact .ways{grid-column:1/-1}}
+.noanim .fold-body{transition:none!important}
+.fold-btn{white-space:nowrap}

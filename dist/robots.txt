@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://YOUR-DOMAIN.example/sitemap.xml
+Sitemap: https://aeyjjjk.github.io/Bonaventure-portfolio/dist/sitemap.xml

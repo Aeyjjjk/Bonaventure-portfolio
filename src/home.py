@@ -123,7 +123,7 @@ def projects():
 {ec("EXP-01","Transmission Company of Nigeria","High-voltage transmission","December 2022 to June 2024",["Worked with engineering teams on new transmission lines: material and equipment selection, site surveys and route choice.","Diagnosed faults on lines and transformers with grounding cables, thermal cameras and fault locators.","Wrote technical reports on maintenance and repairs, and helped plan budgets and schedules for new projects.","Enforced safety regulations and protective equipment use, and carried out routine inspections of lines and transformers."],svgs.tower_card())}
 {ec("EXP-02","Vitek Engineering Company","Electrical installations","December 2019 to November 2022",["Planned and carried out installations with contractors and senior engineers, safely and on schedule.","Assisted a licensed electrical company with residential wiring, to code.","Installed, maintained and repaired electrical systems, including a 500 kVA transformer."],svgs.wiring_card())}
 </div>
-<div class="note-box" style="margin-top:20px"><b>Next step</b>Currently studying MSc Digital Forensics and Cyber Investigations at Teesside University, building on an electrical background of fault diagnosis and written technical reporting. Switch to Digital Forensics or SOC Analyst to see that work.</div>'''
+<div class="note-box" style="margin-top:20px"><b>Next step</b>MSc Digital Forensics and Cyber Investigations graduate (Teesside University, Merit), building on an electrical background of fault diagnosis and written technical reporting. Switch to Digital Forensics or SOC Analyst to see that work.</div>'''
     return f'<section id="investigations" aria-labelledby="inv-h"><div class="wrap">{D("forensics", F)}{D("soc", S)}{D("electrical", E)}</div></section>'
 
 def competencies():
@@ -148,7 +148,7 @@ def competencies():
              ("shield", "Safety Compliance", "Regulations followed and protective equipment required for everyone on site."),
              ("disk", "Routine Maintenance", "Regular inspection of high-voltage lines and transformers to catch problems early.")])
     head = lambda t, p: f'<div class="sec-head"><span class="label t">{t}</span><h2>Disciplines practised.</h2><p>{p}</p></div>'
-    return (f'<section class="alt" aria-labelledby="comp-h"><div class="wrap" id="comp-h">'
+    return (f'<section class="alt" data-fold aria-labelledby="comp-h"><div class="wrap" id="comp-h">'
             + D("forensics", head("Technical competencies", "Each area is backed by an investigation in this portfolio. See Skills for the tools involved.") + F)
             + D("soc", head("Technical competencies", "Each area is backed by one of the three SOC projects. See Skills for the tools involved.") + S)
             + D("electrical", head("Core competencies", "Drawn from work on transmission lines, transformers and installations.") + E) + '</div></section>')
@@ -162,7 +162,7 @@ def method():
 <div class="method-panel" role="tabpanel" aria-live="polite"></div>
 <p class="note">{note}</p>
 <script type="application/json" class="mdata">{data}</script></div>''')
-    return ('<section id="method" aria-labelledby="m-h"><div class="wrap" id="m-h">'
+    return ('<section id="method" data-fold aria-labelledby="m-h"><div class="wrap" id="m-h">'
         + one("forensics", "Evidence requires process.", METHOD, "Select a stage to read how it is approached.", "A general investigative framework. It describes the approach across this portfolio, and does not claim that every project followed identical procedures. For example, the Alexa data came from a data access request, so no disk image or hash could be made.")
         + one("soc", "From a raw artefact to a verified outcome.", SOC_METHOD, "Select a stage to read how the three SOC projects were approached.", "A summary of the approach across the three training projects. It does not claim to describe a production SOC workflow.")
         + '</div></section>')
@@ -173,10 +173,10 @@ def about():
          '<p>Through research and practical forensic investigations, I explore the relationship between digital evidence, technology and investigative decision-making.</p></div>')
     S = ('<div class="open"><p>I approach security analysis the way I approach fault-finding: establish what is actually happening, check it against a second source, and write it down so someone else can follow.</p>'
          '<p>My SOC-focused work so far covers threat intelligence, phishing triage and vulnerability remediation, all as training exercises, each with confidence levels and open items stated.</p>'
-         '<p>I am building on a digital forensics MSc and a background in high-voltage engineering.</p></div>')
+         '<p>I am an MSc Digital Forensics and Cyber Investigations graduate, currently completing a SOC simulation with Amdari that covers Windows, macOS and Linux log analysis in Splunk and alert investigation. My engineering background in fault diagnosis on live transmission systems supports a methodical, root-cause approach.</p></div>')
     E = ('<div class="open"><p>I am a meticulous electrical engineer with over three years of experience in high-voltage electrical systems, committed to high-quality work that is safe and meets regulations.</p>'
          '<p>I want to expand my technical expertise and gain international experience in problem-solving as an electrician or engineer.</p>'
-         '<p>Alongside this I am studying digital forensics and cyber investigation, which is covered in the other views of this portfolio.</p></div>')
+         '<p>Alongside this I have completed an MSc in digital forensics and cyber investigation, which is covered in the other views of this portfolio.</p></div>')
     cell = lambda r, h, li: f'<div data-for="{r}"><h4>{h}</h4><ul>' + "".join(f"<li>{x}</li>" for x in li) + '</ul></div>'
     dl = (cell("forensics", "Areas of interest", ["IoT and cloud evidence", "Windows user-activity artefacts", "Mobile application databases", "Evidence interpretation and limits"])
         + cell("forensics", "Investigation domains", ["Computer and Windows forensics", "Mobile device forensics", "Browser and internet forensics", "IoT and cloud forensics"])
@@ -184,11 +184,11 @@ def about():
         + cell("soc", "Project domains", ["Malware triage", "Email analysis", "Patch management with Ansible", "ATT&amp;CK mapping"])
         + cell("electrical", "Areas of strength", ["High-voltage transmission", "Fault diagnosis and repair", "Installations and wiring", "Technical reports"])
         + cell("electrical", "Memberships", ["Nigerian Society of Engineers (NSE)", "International Association of Engineers (IAENG)"])
-        + '<div><h4>Academic background</h4><ul><li>MSc Digital Forensics and Cyber Investigations <span class="ph">[INSTITUTION · DATES]</span></li><li>BEng Electrical/Electronics <span class="ph">[INSTITUTION · YEAR]</span></li></ul></div>'
-        + '<div><h4>Location</h4><ul><li><span class="ph">[LOCATION]</span></li></ul></div>')
+        + '<div><h4>Academic background</h4><ul><li>MSc Digital Forensics and Cyber Investigations, Teesside University (2024 – 2026, Merit)</li><li>BEng Electrical/Electronics, Afe Babalola University (2017 – 2022)</li></ul></div>'
+        + '<div><h4>Location</h4><ul><li>UK</li></ul></div>')
     acad = ('<p data-for="forensics soc">The case studies here were completed as academic or training work. They are presented as research and assessment exercises with simulated scenarios.</p>')
-    return f'''<section class="alt" id="about" aria-labelledby="ab-h"><div class="wrap"><div class="sec-head"><span class="label t">About</span><h2 id="ab-h">{D("forensics", "How digital activity leaves a trace.", "span")}{D("soc", "Evidence first, then the call.", "span")}{D("electrical", "Engineering that keeps the lights on.", "span")}</h2><p>Name and background details are placeholders to complete.</p></div>
-<div class="about"><div class="portrait"><div class="frame"><span>Professional portrait<br>placeholder</span><img class="pimg" data-for="electrical" data-fb="assets/img/profile.webp" src="assets/img/profile-electrical.webp" alt="Portrait photograph, Electrical view" width="800" height="1000" loading="lazy" decoding="async" hidden><img class="pimg" data-for="forensics" data-fb="assets/img/profile.webp" src="assets/img/profile-forensics.webp" alt="Portrait photograph, Forensics view" width="800" height="1000" loading="lazy" decoding="async" hidden><img class="pimg" data-for="soc" data-fb="assets/img/profile.webp" src="assets/img/profile-soc.webp" alt="Portrait photograph, SOC view" width="800" height="1000" loading="lazy" decoding="async" hidden></div><p class="label" style="margin-top:12px">{NAME}</p></div>
+    return f'''<section class="alt" id="about" data-fold aria-labelledby="ab-h"><div class="wrap"><div class="sec-head"><span class="label t">About</span><h2 id="ab-h">{D("forensics", "How digital activity leaves a trace.", "span")}{D("soc", "Evidence first, then the call.", "span")}{D("electrical", "Engineering that keeps the lights on.", "span")}</h2></div>
+<div class="about"><div class="portrait"><div class="frame"><span>Professional portrait<br>placeholder</span><img class="pimg" src="assets/img/profile-electrical.webp" alt="Portrait of {NAME}" width="800" height="1000" loading="lazy" decoding="async" hidden></div><p class="label" style="margin-top:12px">{NAME}</p></div>
 <div class="about-copy">{D("forensics", F)}{D("soc", S)}{D("electrical", E)}
 <div class="dl">{dl}</div>
 {acad}
@@ -246,6 +246,10 @@ TOOLS_SOC = {
    ("SPF, DKIM and DMARC", "Interpreted each result and its alignment, and noted that the headers do not show what the gateway did."),
    ("MIME and attachment analysis", "Decoded a base64 attachment and hashed it with SHA-256 to identify an HTML file presented as a PDF."),
    ("Link and pixel review", "Compared the HTML and plain-text links and identified a hidden 1x1 tracking image.")]),
+ "Log Analysis and SIEM": ("From the Amdari SOC simulation.", [
+   ("Splunk Enterprise", "Windows and macOS logs forwarded to dedicated indexes with the Universal Forwarder, plus Kali Linux authentication logs and Suricata alert output in a Linux index."),
+   ("Suricata", "Network intrusion detection, including a custom ICMP rule written to test alerting."),
+   ("Kali Linux and VirtualBox", "Lab environment used to build and test the pipeline.")]),
  "Vulnerability Management": ("Fix, prove and be able to undo.", [
    ("OpenVAS / Greenbone", "Used for the baseline scan and the post-patch re-scan, and to read the Applications tab to confirm the detected nginx version."),
    ("Ansible", "A patch playbook with a built-in version check, a syntax check and a --check dry run, plus a rollback playbook that restores a backup."),
@@ -282,7 +286,7 @@ def skills():
             cats += f'<div class="skillcat"><span class="label t">{name}</span><h3>{name}</h3><p>{blurb}</p><div class="tl">{t}</div><div class="tooldesc" aria-live="polite"></div></div>'
         return f'<div class="skillgrid">{cats}</div>'
     head = lambda p: f'<div class="sec-head"><span class="label t">Skills and tools</span><h2>What was used, and how.</h2><p>{p}</p></div>'
-    return ('<section id="skills" aria-labelledby="sk-h"><div class="wrap" id="sk-h">'
+    return ('<section id="skills" data-fold aria-labelledby="sk-h"><div class="wrap" id="sk-h">'
         + D("forensics", head("Select a tool to see how it was applied in these investigations. No proficiency ratings are claimed.") + grid(TOOLS))
         + D("soc", head("Select a tool to see how it was applied in the SOC projects. No proficiency ratings are claimed.") + grid(TOOLS_SOC))
         + D("electrical", head("Select an item to see where it was used. Drawn from the CV, with no proficiency ratings claimed.") + grid(TOOLS_EL)) + '</div></section>')
@@ -290,14 +294,7 @@ def skills():
 def contact():
     return f'''<section class="alt" id="contact" aria-labelledby="c-h"><div class="wrap"><div class="contact">
 <h2 id="c-h">Have an investigation, research opportunity or technical collaboration in mind?</h2>
-<div class="ways"><dl><div><dt>Email</dt><dd><a href="mailto:ogbonna1.ugwuja@gmail.com">ogbonna1.ugwuja@gmail.com</a></dd></div><div><dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/ogbonna-ugwuja-bonaventure/" target="_blank" rel="noopener">linkedin.com/in/ogbonna-ugwuja-bonaventure</a></dd></div><div><dt>GitHub</dt><dd><a href="#" data-soon="Add your GitHub URL in place of [GITHUB URL].">[GITHUB URL]</a></dd></div><div><dt>Location</dt><dd>[LOCATION]</dd></div><div><dt>CV</dt><dd>{cvlinks("", "Download CV (PDF)", False)}</dd></div></dl></div>
-<form id="contact-form" novalidate aria-label="Contact form">
-<div class="field"><label for="f-name">Name</label><input id="f-name" name="name" autocomplete="name"><span class="err">Enter your name.</span></div>
-<div class="field"><label for="f-mail">Email</label><input id="f-mail" name="email" type="email" autocomplete="email"><span class="err">Enter a valid email address.</span></div>
-<div class="field"><label for="f-msg">Message</label><textarea id="f-msg" name="message"></textarea><span class="err">Write at least 10 characters.</span></div>
-<button class="btn" type="submit">Send message</button>
-<p class="formnote">Demo form: it checks your input but does not send anything yet. Connect it to a form service before publishing.</p></form>
-<div class="confirm" id="form-ok" tabindex="-1" role="status"><p style="color:var(--fg);margin:0 0 10px"><strong>Form checked. Nothing was sent.</strong></p><p style="margin:0 0 16px;color:var(--fg2)">This form is not connected to a submission service yet. Use the email address above in the meantime.</p><button class="btn ghost sm" type="button" id="form-again">Edit message</button></div>
+<div class="ways"><dl><div><dt>Email</dt><dd><a href="mailto:ogbonna1.ugwuja@gmail.com">ogbonna1.ugwuja@gmail.com</a></dd></div><div><dt>LinkedIn</dt><dd><a href="https://www.linkedin.com/in/ogbonna-ugwuja-bonaventure/" target="_blank" rel="noopener">linkedin.com/in/ogbonna-ugwuja-bonaventure</a></dd></div><div><dt>Location</dt><dd>UK</dd></div><div><dt>CV</dt><dd>{cvlinks("", "Download CV (PDF)", False)}</dd></div></dl></div>
 </div></div></section>'''
 
 

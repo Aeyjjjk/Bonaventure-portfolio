@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Snapchat Mobile Forensics | Digital Forensics Portfolio</title>
 <meta name="description" content="Academic comparative investigation of Snapchat artefacts on Android and iOS using Cellebrite Physical Analyzer and Magnet AXIOM.">
-<meta property="og:title" content="Snapchat Mobile Forensics | Digital Forensics Portfolio"><meta property="og:description" content="Academic comparative investigation of Snapchat artefacts on Android and iOS using Cellebrite Physical Analyzer and Magnet AXIOM."><meta property="og:type" content="website"><meta property="og:image" content="https://YOUR-DOMAIN.example/assets/img/og.png"><meta property="og:url" content="https://YOUR-DOMAIN.example/snapchat-mobile-forensics.html"><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://YOUR-DOMAIN.example/snapchat-mobile-forensics.html"><meta name="theme-color" content="#0B1020">
+<meta property="og:title" content="Snapchat Mobile Forensics | Digital Forensics Portfolio"><meta property="og:description" content="Academic comparative investigation of Snapchat artefacts on Android and iOS using Cellebrite Physical Analyzer and Magnet AXIOM."><meta property="og:type" content="website"><meta property="og:image" content="https://aeyjjjk.github.io/Bonaventure-portfolio/dist/assets/img/og.png"><meta property="og:url" content="https://aeyjjjk.github.io/Bonaventure-portfolio/dist/snapchat-mobile-forensics.html"><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://aeyjjjk.github.io/Bonaventure-portfolio/dist/snapchat-mobile-forensics.html"><meta name="theme-color" content="#0B1020">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
 <style>/* Layout concept: dark editorial forensics. Asymmetric 12-col grid, mono "exhibit" labels, evidence panels with corner ticks, teal = analysis, amber = evidence markers. */
 :root{
@@ -456,6 +456,23 @@ pre.code{background:var(--bg2);border:1px solid var(--line);padding:16px;overflo
 @media(max-width:1180px){.rs-head{display:inline-flex}}
 @media(max-width:1060px){.rs-head{display:none}}
 
+/* collapsible sections */
+.fold-btn{display:none}
+[data-fold].fold-ready .fold-btn{display:inline-flex;align-items:center;margin-top:18px;min-height:40px;padding:0 16px;background:none;border:1px solid var(--line);color:var(--teal);font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+[data-fold].fold-ready .fold-btn:hover{border-color:var(--teal)}
+.fold-btn .c{display:none}
+[data-fold].open .fold-btn .o{display:none}
+[data-fold].open .fold-btn .c{display:inline}
+.fold-body{display:block}
+[data-fold].fold-ready .fold-body{display:grid;grid-template-rows:0fr;visibility:hidden;transition:grid-template-rows .5s cubic-bezier(.2,.7,.2,1),visibility 0s .5s}
+[data-fold].fold-ready.open .fold-body{grid-template-rows:1fr;visibility:visible;transition:grid-template-rows .5s cubic-bezier(.2,.7,.2,1),visibility 0s}
+[data-fold].fold-ready .fold-in{overflow:hidden;min-height:0}
+@media(prefers-reduced-motion:reduce){[data-fold].fold-ready .fold-body{transition:none}}
+.contact .ways{grid-column:1/9}
+@media(max-width:900px){.contact .ways{grid-column:1/-1}}
+.noanim .fold-body{transition:none!important}
+.fold-btn{white-space:nowrap}
+
 header.site{top:env(safe-area-inset-top,0px)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
 </style></head><body>
@@ -475,13 +492,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <nav class="next" aria-label="Case study navigation"><a href="raid-windows-forensics.html"><span class="label">&larr; Previous investigation</span><b>RAID Reconstruction & Windows Forensics</b></a><a href="uc-browser-forensics.html"><span class="label">Next investigation &rarr;</span><b>UC Browser Forensics</b></a></nav>
 </div></div></main><footer class="site"><div class="wrap">
 <div class="foot">
-<div class="about-f"><p class="big"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p><p style="color:var(--fg2);margin:8px 0 0">Electrical engineering · Digital forensics · SOC analysis</p>
+<div class="about-f"><p class="big">Bonaventure Ugwuja Ogbonna</p><p style="color:var(--fg2);margin:8px 0 0">Electrical engineering · Digital forensics · SOC analysis</p>
 <p style="color:var(--fg2);font-size:14px;margin-top:18px" data-for="forensics soc">Academic and training case studies. Scenarios are simulations built for research and assessment, not live engagements.</p></div>
 <div class="col"><h4>Navigate</h4><ul><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations">Investigations</a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li></ul></div>
 <div class="col"><h4><span data-for="forensics soc">Investigations</span><span data-for="electrical">Experience</span></h4><ul data-for="forensics"><li><a href="alexa-iot-forensics.html">Amazon Alexa IoT Forensics</a></li><li><a href="raid-windows-forensics.html">RAID Reconstruction & Windows Forensics</a></li><li><a href="snapchat-mobile-forensics.html">Snapchat Mobile Forensics</a></li><li><a href="uc-browser-forensics.html">UC Browser Forensics</a></li></ul><ul data-for="soc"><li><a href="darkside-threat-profile.html">DarkSide Ransomware Threat Profile</a></li><li><a href="nginx-ansible-remediation.html">nginx Remediation with Ansible</a></li><li><a href="invoice-fraud-phishing-analysis.html">Invoice Fraud Phishing Analysis</a></li></ul><ul data-for="electrical"><li><a href="index.html#investigations">Transmission Company of Nigeria</a></li><li><a href="index.html#investigations">Vitek Engineering Company</a></li></ul></div>
-<div class="col"><h4>Contact</h4><ul><li><a href="mailto:ogbonna1.ugwuja@gmail.com">ogbonna1.ugwuja@gmail.com</a></li><li><a href="https://www.linkedin.com/in/ogbonna-ugwuja-bonaventure/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a class="cvl" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a></li></ul></div>
+<div class="col"><h4>Contact</h4><ul><li><a href="mailto:ogbonna1.ugwuja@gmail.com">ogbonna1.ugwuja@gmail.com</a></li><li><a href="https://www.linkedin.com/in/ogbonna-ugwuja-bonaventure/" target="_blank" rel="noopener">LinkedIn</a></li><li><a class="cvl" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a></li></ul></div>
 </div>
-<div class="foot-bot"><span>&copy; <span class="yr">2026</span> <span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></span><em>Investigate. Analyse. Understand.</em></div>
+<div class="foot-bot"><span>&copy; <span class="yr">2026</span> Bonaventure Ugwuja Ogbonna</span><em>Investigate. Analyse. Understand.</em></div>
 </div></footer><div class="toast" role="status" aria-live="polite"></div></div>
 <script>(function(){
 'use strict';
@@ -636,6 +653,47 @@ if(form){
     form.hidden=true;ok.classList.add('show');ok.focus();
   });
   var again=$('#form-again');if(again)again.addEventListener('click',function(){form.reset();form.hidden=false;ok.classList.remove('show');$('#f-name').focus();});
+}
+
+/* collapsible home sections: closed until the reader scrolls to them (or presses the button) */
+var folds=$$('[data-fold]');
+if(folds.length){
+  folds.forEach(function(sec){
+    $$('.sec-head',sec).forEach(function(head){
+      var body=document.createElement('div'),inn=document.createElement('div');
+      body.className='fold-body';inn.className='fold-in';
+      while(head.nextSibling)inn.appendChild(head.nextSibling);
+      body.appendChild(inn);head.parentNode.appendChild(body);
+      var btn=document.createElement('button');btn.type='button';btn.className='fold-btn';btn.setAttribute('aria-expanded','false');
+      btn.innerHTML='<span class="o">Show section</span><span class="c">Hide section</span>';
+      btn.addEventListener('click',function(){setFold(sec,!sec.classList.contains('open'));sec.setAttribute('data-manual','1');});
+      head.appendChild(btn);
+    });
+    sec.classList.add('fold-ready');
+  });
+  function setFold(sec,open){sec.classList.toggle('open',open);$$('.fold-btn',sec).forEach(function(b){b.setAttribute('aria-expanded',open);});}
+  var hold=false,ht=null,fo=null;
+  if('IntersectionObserver' in window){
+    fo=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(hold||!e.isIntersecting||e.target.getAttribute('data-manual'))return;
+      setFold(e.target,true);fo.unobserve(e.target);
+    });},{rootMargin:'0px 0px -30% 0px'});
+    folds.forEach(function(s){fo.observe(s);});
+  }else{folds.forEach(function(s){setFold(s,true);});}
+  /* a jump to a section opens only that section, so the page does not shift while it scrolls */
+  function jump(id){
+    var t=id&&document.getElementById(id);if(!t)return;
+    var sec=t.hasAttribute('data-fold')?t:(t.closest?t.closest('[data-fold]'):null);
+    hold=true;
+    if(sec){sec.classList.add('noanim');setFold(sec,true);if(fo)fo.unobserve(sec);setTimeout(function(){sec.classList.remove('noanim');},60);}
+    clearTimeout(ht);
+    ht=setTimeout(function(){hold=false;if(fo)folds.forEach(function(s){if(!s.classList.contains('open')){fo.unobserve(s);fo.observe(s);}});},1400);
+  }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest?e.target.closest('a[href^="#"]'):null;
+    if(a)jump(a.getAttribute('href').slice(1));
+  });
+  if(location.hash)jump(location.hash.slice(1));
 }
 })();
 

@@ -499,6 +499,12 @@ rule DarkSide_OU {
 <script>(function(){
 'use strict';
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var ST={
+  get:function(k){var v=null;try{v=localStorage.getItem('pf-'+k);}catch(e){}
+    if(v)return v;try{var m=(window.name||'').match(new RegExp('pf-'+k+'=([a-z]+)'));return m?m[1]:null;}catch(e){return null;}},
+  set:function(k,v){try{localStorage.setItem('pf-'+k,v);}catch(e){}
+    try{var n=(window.name||'').replace(new RegExp('pf-'+k+'=[a-z]+;?'),'');window.name=n+'pf-'+k+'='+v+';';}catch(e){}}
+};
 var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /* mobile menu */
@@ -556,9 +562,9 @@ var tbtn=$('.theme-btn'),de=document.documentElement;
 function setTheme(t,save){
   if(t==='light')de.setAttribute('data-theme','light');else de.setAttribute('data-theme','dark');
   if(tbtn)tbtn.setAttribute('aria-pressed',t==='light');
-  if(save){try{localStorage.setItem('pf-theme',t);}catch(e){}}
+  if(save)ST.set('theme',t);
 }
-var th='dark';try{th=localStorage.getItem('pf-theme')||(de.getAttribute('data-theme')==='light'?'light':'dark');}catch(e){}
+var th='dark';th=ST.get('theme')||(de.getAttribute('data-theme')==='light'?'light':'dark');
 setTheme(th,false);
 if(tbtn)tbtn.addEventListener('click',function(){setTheme(de.getAttribute('data-theme')==='light'?'dark':'light',true);});
 
@@ -568,23 +574,33 @@ function setRole(r,fromUser){
   if(ROLES.indexOf(r)<0)return;
   if(root)root.setAttribute('data-role',r);
   $$('[data-role-btn]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-role-btn')===r);});
-  try{localStorage.setItem('pf-role',r);}catch(e){}
+  ST.set('role',r);
   var pr=$('[data-pagerole]');
   if(fromUser&&pr&&pr.getAttribute('data-pagerole')!==r){location.href='index.html';}
 }
 var init='forensics',pr0=$('[data-pagerole]');
-try{init=localStorage.getItem('pf-role')||init;}catch(e){}
+init=ST.get('role')||init;
 if(pr0)init=pr0.getAttribute('data-pagerole');
 setRole(init,false);
 $$('[data-role-btn]').forEach(function(b){b.addEventListener('click',function(){setRole(b.getAttribute('data-role-btn'),true);});});
 
-/* profile photo: show it only if the file exists */
+/* profile photos: one per role; show only files that exist (falls back to profile.webp) */
+function photoState(){
+  $$('.pframe,.portrait .frame').forEach(function(f){
+    var any=$$('.pimg',f).some(function(im){return im.dataset.ok==='1'&&im.offsetParent!==null;});
+    f.classList.toggle('has',any);
+  });
+}
 $$('.pimg').forEach(function(im){
-  function ok(){im.hidden=false;if(im.parentNode)im.parentNode.classList.add('has');}
+  function ok(){im.dataset.ok='1';im.hidden=false;photoState();}
   im.addEventListener('load',function(){if(im.naturalWidth>0)ok();});
-  im.addEventListener('error',function(){im.hidden=true;});
+  im.addEventListener('error',function(){
+    var fb=im.getAttribute('data-fb');
+    if(fb&&!im.dataset.tried){im.dataset.tried='1';im.src=fb;}else{im.hidden=true;im.dataset.ok='0';photoState();}
+  });
   if(im.complete&&im.naturalWidth>0)ok();
 });
+var _sr=setRole;setRole=function(r,u){_sr(r,u);photoState();};
 
 /* tool cards */
 $$('.skillcat').forEach(function(cat){

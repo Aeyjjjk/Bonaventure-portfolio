@@ -81,7 +81,7 @@ def alexa():
     S.append(("dashboard", "Data visualisations",
       '<p>Charts below use figures stated in the dissertation. Where a source chart is shown as an image, it is the original output from the analysis.</p>'
       + panel("Device activity timeline", "Drawn to scale", '<div class="dscroll">' + svgs.alexa_timeline() + '</div>', "Echo Show and Echo Dot capture windows, with the 16-second anomaly on the first day of the Echo Show data.")
-      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:20px">'
       + panel("Connectivity events", "Echo Dot", svgs.alexa_conn(), "60 OK entries and 67 UNREACHABLE out of 127.")
       + panel("Data category breakdown", "Magnet AXIOM", svgs.alexa_axiom(), "844 items, drawn to scale.") + '</div>'
       + gallery([("alexa-utterance-analysis", "Exhibit ALX-04 · Speech analysis", "Voice utterance categories and hours of day (UTC) from the Colab analysis.", "Bar charts of Echo Dot voice utterance categories and utterances by hour of day"),

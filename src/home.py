@@ -61,12 +61,12 @@ def hero():
 <div class="hero-roles" id="h1" role="heading" aria-level="1">{copy}</div>
 </div>
 <div class="hero-vis"><div class="pscene" role="group" aria-label="Profile photograph">
-<div class="pframe"><div class="pmsg">{sil}<span>Profile photo</span><small data-for="electrical">Add assets/img/profile-electrical.webp</small><small data-for="forensics">Add assets/img/profile-forensics.webp</small><small data-for="soc">Add assets/img/profile-soc.webp</small></div>
+<div class="pframe"><div class="pmsg">{sil}</div>
 <img class="pimg" data-for="electrical" data-fb="assets/img/profile.webp" src="assets/img/profile-electrical.webp" alt="Portrait photograph, Electrical view" width="800" height="1000" decoding="async" hidden><img class="pimg" data-for="forensics" data-fb="assets/img/profile.webp" src="assets/img/profile-forensics.webp" alt="Portrait photograph, Forensics view" width="800" height="1000" decoding="async" hidden><img class="pimg" data-for="soc" data-fb="assets/img/profile.webp" src="assets/img/profile-soc.webp" alt="Portrait photograph, SOC view" width="800" height="1000" decoding="async" hidden></div>
 <i class="cm a"></i><i class="cm b"></i><i class="cm c"></i><i class="cm d"></i>
-<span class="tag am" data-for="forensics" style="left:6%;top:4%">Exhibit PRF-01</span><span class="tag te" data-for="forensics" style="right:6%;bottom:4%">Digital forensics</span>
-<span class="tag am" data-for="soc" style="left:6%;top:4%">Case file · SOC</span><span class="tag te" data-for="soc" style="right:6%;bottom:4%">Threat &amp; vulnerability</span>
-<span class="tag am" data-for="electrical" style="left:6%;top:4%">Field engineer</span><span class="tag te" data-for="electrical" style="right:6%;bottom:4%">High voltage</span>
+<span class="tag am" data-for="forensics" style="left:6%;top:4%">Digital forensics</span><span class="tag te" data-for="forensics" style="right:6%;bottom:4%">MSc graduate</span>
+<span class="tag am" data-for="soc" style="left:6%;top:4%">SOC analyst candidate</span><span class="tag te" data-for="soc" style="right:6%;bottom:4%">Threat &amp; vulnerability</span>
+<span class="tag am" data-for="electrical" style="left:6%;top:4%">Electrical engineer</span><span class="tag te" data-for="electrical" style="right:6%;bottom:4%">High voltage</span>
 </div></div></div></section>'''
 
 def intro():
@@ -117,7 +117,7 @@ def projects():
 </div>'''
     def ec(ref, title, cat, when, bullets, art):
         li = "".join(f"<li>{b}</li>" for b in bullets)
-        return f'''<div class="card ec"><div class="thumb art"><span class="tag am ref">{ref}</span>{art}</div><div class="txt"><span class="cat">{cat}</span><h3>{title}</h3><p class="when">{when} · <span class="ph">[JOB TITLE]</span></p><ul class="ecl">{li}</ul></div></div>'''
+        return f'''<div class="card ec"><div class="thumb art"><span class="tag am ref">{ref}</span>{art}</div><div class="txt"><span class="cat">{cat}</span><h3>{title}</h3><p class="when">{when}</p><ul class="ecl">{li}</ul></div></div>'''
     E = f'''<div class="sec-head"><span class="label t">Experience</span><h2>Two employers, one discipline.</h2><p>Work on transmission lines, transformers and electrical installations.</p></div>
 <div class="cards">
 {ec("EXP-01","Transmission Company of Nigeria","High-voltage transmission","December 2022 to June 2024",["Worked with engineering teams on new transmission lines: material and equipment selection, site surveys and route choice.","Diagnosed faults on lines and transformers with grounding cables, thermal cameras and fault locators.","Wrote technical reports on maintenance and repairs, and helped plan budgets and schedules for new projects.","Enforced safety regulations and protective equipment use, and carried out routine inspections of lines and transformers."],svgs.tower_card())}
@@ -188,7 +188,7 @@ def about():
         + '<div><h4>Location</h4><ul><li>UK</li></ul></div>')
     acad = ('<p data-for="forensics soc">The case studies here were completed as academic or training work. They are presented as research and assessment exercises with simulated scenarios.</p>')
     return f'''<section class="alt" id="about" data-fold aria-labelledby="ab-h"><div class="wrap"><div class="sec-head"><span class="label t">About</span><h2 id="ab-h">{D("forensics", "How digital activity leaves a trace.", "span")}{D("soc", "Evidence first, then the call.", "span")}{D("electrical", "Engineering that keeps the lights on.", "span")}</h2></div>
-<div class="about"><div class="portrait"><div class="frame"><span>Professional portrait<br>placeholder</span><img class="pimg" src="assets/img/profile-electrical.webp" alt="Portrait of {NAME}" width="800" height="1000" loading="lazy" decoding="async" hidden></div><p class="label" style="margin-top:12px">{NAME}</p></div>
+<div class="about"><div class="portrait"><div class="frame"><span class="sil-w"><svg class="sil" viewBox="0 0 120 150" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="60" cy="52" r="24"/><path d="M14 148c2-36 22-56 46-56s44 20 46 56"/></svg></span><img class="pimg" src="assets/img/profile-electrical.webp" alt="Portrait of {NAME}" width="800" height="1000" loading="lazy" decoding="async" hidden></div><p class="label" style="margin-top:12px">{NAME}</p></div>
 <div class="about-copy">{D("forensics", F)}{D("soc", S)}{D("electrical", E)}
 <div class="dl">{dl}</div>
 {acad}

@@ -33,5 +33,5 @@ Screenshots from the source reports contained a student ID, university branding,
 The home page has a switcher (Electrical Engineering / Digital Forensics / SOC Analyst). Anything marked `data-for="role1 role2"` shows only for those roles; the choice is remembered in the visitor's browser. Case pages set the role automatically.
 
 - **Profile photos:** one per view. Save portraits (4:5, about 800x1000) as `assets/img/profile-electrical.webp`, `profile-forensics.webp` and `profile-soc.webp`. A missing one falls back to `profile.webp`, then to the placeholder.
-- **CVs:** `src/cv.py` writes `CV-electrical-engineering.pdf`, `CV-digital-forensics.pdf` and `CV-soc-analyst.pdf`. Each role shows its own Download CV button. Fill the `[JOB TITLE]` and name placeholders there, then run `python3 src/cv.py && python3 src/build.py`.
+- **CVs:** `src/cv.py` writes `CV-electrical-engineering.pdf`, `CV-digital-forensics.pdf` and `CV-soc-analyst.pdf`. Each role shows its own Download CV button. Edit the CV text there, then run `python3 src/cv.py && python3 src/build.py`.
 - **SOC case studies:** `darkside()`, `nginx()` and `phish()` in `src/cases.py`. Server address, usernames and key details are deliberately withheld.

@@ -472,6 +472,14 @@ pre.code{background:var(--bg2);border:1px solid var(--line);padding:16px;overflo
 @media(max-width:900px){.contact .ways{grid-column:1/-1}}
 .noanim .fold-body{transition:none!important}
 .fold-btn{white-space:nowrap}
+.sil-w{display:grid;place-items:center;width:100%;height:100%;color:var(--fg2)}
+.sil-w .sil{width:38%;max-width:150px;opacity:.7}
+.gallery{grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr))}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr))}
+@media(max-width:900px){.method-panel{display:block}.method-panel h3{margin-bottom:12px}}
+h1,h2,h3{overflow-wrap:anywhere}
+@media(max-width:400px){.cs-hero h1{font-size:30px}.hero-roles h1{font-size:40px}}
+[data-fold].fold-ready .fold-btn{grid-column:1/-1;justify-self:start;width:auto;max-width:100%}
 
 header.site{top:env(safe-area-inset-top,0px)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}

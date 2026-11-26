@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Invoice Fraud Phishing Analysis | Digital Forensics Portfolio</title>
+<meta name="description" content="SOC case-study exercise: analysing a business email compromise invoice message, with header and authentication analysis, indicators and response recommendations.">
+<meta property="og:title" content="Invoice Fraud Phishing Analysis | Digital Forensics Portfolio"><meta property="og:description" content="SOC case-study exercise: analysing a business email compromise invoice message, with header and authentication analysis, indicators and response recommendations."><meta property="og:type" content="website"><meta property="og:image" content="https://YOUR-DOMAIN.example/assets/img/og.png"><meta property="og:url" content="https://YOUR-DOMAIN.example/invoice-fraud-phishing-analysis.html"><meta name="twitter:card" content="summary_large_image"><link rel="canonical" href="https://YOUR-DOMAIN.example/invoice-fraud-phishing-analysis.html"><meta name="theme-color" content="#0B1020">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>/* Layout concept: dark editorial forensics. Asymmetric 12-col grid, mono "exhibit" labels, evidence panels with corner ticks, teal = analysis, amber = evidence markers. */
+:root{
+  --bg:#0B1020; --bg2:#111A2C; --card:#172238; --fg:#F4F5F7; --fg2:#A5AFBF;
+  --teal:#27C6B0; --amber:#F0A45D; --line:#26344B; --grid:#1D2B40; --ink:#06101a;
+  --f-head:'Space Grotesk','Helvetica Neue',Arial,sans-serif;
+  --f-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --maxw:1240px; --gut:max(20px,env(safe-area-inset-left,0px)); --gutr:max(20px,env(safe-area-inset-right,0px));
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17px/1.65 var(--f-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--teal);text-decoration-thickness:1px;text-underline-offset:3px}
+a:hover{color:#5eead4}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:2px}
+h1,h2,h3,h4{font-family:var(--f-head);line-height:1.08;margin:0;text-wrap:balance;letter-spacing:-.02em}
+p{margin:0 0 1em;max-width:68ch}
+.skip{position:absolute;left:-999px;top:8px;background:var(--teal);color:var(--ink);padding:8px 14px;z-index:100;font-weight:600}
+.skip:focus{left:8px}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--gut);padding-right:var(--gutr)}
+.mono{font-family:var(--f-mono)}
+.label{font:500 12.5px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg2)}
+.label.t{color:var(--teal)} .label.a{color:var(--amber)}
+.grid-bg{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;background-position:-1px -1px}
+.grid-fade{position:relative;isolation:isolate}
+.grid-fade::before{content:"";position:absolute;inset:0;z-index:-1;opacity:.55;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:56px 56px;-webkit-mask-image:linear-gradient(to bottom,#000 0%,transparent 85%);mask-image:linear-gradient(to bottom,#000 0%,transparent 85%)}
+
+/* progress + header */
+.progress{position:fixed;top:0;left:0;height:2px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:var(--teal);z-index:60}
+header.site{position:sticky;top:0;z-index:50;background:rgba(11,16,32,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.nav{display:flex;align-items:center;gap:28px;height:68px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--fg);text-decoration:none;margin-right:auto}
+.brand svg{flex:none}
+.brand b{display:block;font:600 15px/1.1 var(--f-head);letter-spacing:.02em}
+.brand i{display:block;font:500 10.5px/1.3 var(--f-mono);letter-spacing:.12em;color:var(--fg2);text-transform:uppercase;font-style:normal;margin-top:3px}
+.nav ul{display:flex;gap:6px;list-style:none;margin:0;padding:0}
+.nav ul a{display:block;padding:10px 12px;color:var(--fg2);text-decoration:none;font-size:15px;font-weight:500;border-radius:3px}
+.nav ul a:hover,.nav ul a[aria-current]{color:var(--fg)}
+.nav ul a[aria-current]{box-shadow:inset 0 -2px 0 var(--teal)}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:46px;padding:0 20px;border:1px solid var(--teal);background:var(--teal);color:var(--ink);font:600 13px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;text-decoration:none;cursor:pointer;transition:background .2s,color .2s,transform .2s}
+.btn:hover{background:transparent;color:var(--teal)}
+.btn.ghost{background:transparent;color:var(--fg);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--teal);color:var(--teal)}
+.btn.sm{min-height:38px;padding:0 14px;font-size:12px}
+.btn svg{width:15px;height:15px;flex:none}
+.menu-btn{display:none;background:none;border:1px solid var(--line);color:var(--fg);width:46px;height:46px;cursor:pointer}
+@media(max-width:900px){
+  .menu-btn{display:grid;place-items:center}
+  .nav{gap:12px}
+  .nav ul{position:fixed;inset:68px 0 auto 0;flex-direction:column;background:var(--bg2);border-bottom:1px solid var(--line);padding:12px var(--gutr) 20px var(--gut);gap:0;transform:translateY(-8px);opacity:0;visibility:hidden;transition:.2s}
+  .nav ul.open{transform:none;opacity:1;visibility:visible}
+  .nav ul a{padding:16px 0;font-size:18px;border-bottom:1px solid var(--line);border-radius:0}
+  .nav .btn.cv{display:none}
+  .nav ul .cv-m{display:block}
+}
+.cv-m{display:none}
+
+/* sections */
+section{padding-block:clamp(72px,9vw,128px)}
+.sec-head{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:24px;margin-bottom:clamp(36px,5vw,64px);align-items:end}
+.sec-head .label{grid-column:1/-1}
+.sec-head h2{grid-column:1/9;font-size:clamp(34px,4.6vw,60px)}
+.sec-head p{grid-column:9/-1;color:var(--fg2);font-size:16px;margin:0}
+@media(max-width:900px){.sec-head h2,.sec-head p{grid-column:1/-1}}
+.alt{background:var(--bg2);border-block:1px solid var(--line)}
+
+/* hero */
+.hero{padding-top:clamp(48px,7vw,96px);padding-bottom:clamp(56px,7vw,96px)}
+.hero-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px;align-items:center}
+.hero-copy{grid-column:1/8}
+.hero h1{font-size:clamp(44px,7.6vw,104px);font-weight:700;letter-spacing:-.035em;text-transform:uppercase;line-height:.95}
+.hero h1 em{font-style:normal;color:var(--teal)}
+.hero .lede{font-size:clamp(17px,1.5vw,20px);color:var(--fg2);margin:28px 0 36px;max-width:56ch}
+.cta-row{display:flex;flex-wrap:wrap;gap:14px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:10px 28px;margin-top:44px;padding-top:20px;border-top:1px solid var(--line)}
+.hero-meta span{font:500 12px/1.5 var(--f-mono);letter-spacing:.1em;color:var(--fg2);text-transform:uppercase}
+.hero-meta b{color:var(--amber);font-weight:500}
+.hero-vis{grid-column:8/-1;position:relative}
+@media(max-width:1000px){.hero-copy,.hero-vis{grid-column:1/-1}.hero-vis{max-width:560px}}
+.scene{position:relative;aspect-ratio:4/5;border:1px solid var(--line);background:var(--bg2);overflow:hidden}
+.scene svg.ov{position:absolute;inset:0;width:100%;height:100%}
+.scene .photo{position:absolute;left:11%;right:11%;top:19%;bottom:27%;border:1px solid var(--amber);background:#000}
+.scene .photo img{width:100%;height:100%;object-fit:cover}
+.tag{position:absolute;font:500 10.5px/1.4 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);background:rgba(11,16,32,.88);padding:4px 8px;border:1px solid var(--line)}
+.tag.am{color:var(--amber);border-color:rgba(240,164,93,.5)}
+.tag.te{color:var(--teal);border-color:rgba(39,198,176,.45)}
+@keyframes rise{from{opacity:.001;transform:translateY(14px)}to{opacity:1;transform:none}}
+.hero .hero-copy>*{animation:rise .7s cubic-bezier(.2,.7,.2,1) backwards}
+.hero .hero-copy>*:nth-child(2){animation-delay:.08s}.hero .hero-copy>*:nth-child(3){animation-delay:.16s}.hero .hero-copy>*:nth-child(4){animation-delay:.24s}
+
+/* intro */
+.intro{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:32px}
+.intro h2{grid-column:1/7;font-size:clamp(32px,4vw,52px)}
+.intro .body{grid-column:7/-1}
+.intro .body p{font-size:18px;color:var(--fg2)}
+.intro .body p:first-child{color:var(--fg)}
+.pillars{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);margin-top:24px}
+.pillars div{padding:22px 22px 26px;border-right:1px solid var(--line)}
+.pillars div:last-child{border-right:0}
+.pillars b{display:block;font:600 19px/1.2 var(--f-head);margin:10px 0 6px}
+.pillars span{color:var(--fg2);font-size:15px;line-height:1.5}
+@media(max-width:900px){.intro h2,.intro .body{grid-column:1/-1}.pillars{grid-template-columns:1fr 1fr}.pillars div:nth-child(2){border-right:0}.pillars div:nth-child(-n+2){border-bottom:1px solid var(--line)}}
+@media(max-width:520px){.pillars{grid-template-columns:1fr}.pillars div{border-right:0;border-bottom:1px solid var(--line)}.pillars div:last-child{border-bottom:0}}
+
+/* filter + project cards */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.chip{min-height:40px;padding:0 16px;background:transparent;border:1px solid var(--line);color:var(--fg2);font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.chip:hover{color:var(--fg);border-color:var(--fg2)}
+.chip[aria-pressed="true"]{background:var(--teal);color:var(--ink);border-color:var(--teal)}
+.cards{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.card{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);text-decoration:none;color:var(--fg);overflow:hidden;transition:border-color .25s,transform .25s}
+.card:hover{border-color:var(--teal);transform:translateY(-3px);color:var(--fg)}
+.card[hidden]{display:none}
+.card .thumb{position:relative;background:var(--ink);border-bottom:1px solid var(--line);overflow:hidden}
+.card .thumb img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.card:hover .thumb img{transform:scale(1.03)}
+.card .thumb .ref{position:absolute;left:12px;top:12px}
+.card .txt{padding:24px 26px 26px;display:flex;flex-direction:column;gap:12px;flex:1}
+.card h3{font-size:clamp(22px,2vw,28px)}
+.card p{color:var(--fg2);font-size:15.5px;margin:0}
+.card .cat{font:500 12px/1.4 var(--f-mono);letter-spacing:.08em;color:var(--teal);text-transform:uppercase}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:6px}
+.tools span{font:500 11.5px/1 var(--f-mono);color:var(--fg2);border:1px solid var(--line);padding:6px 8px}
+.view{margin-top:6px;display:inline-flex;align-items:center;gap:10px;font:600 12.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--amber)}
+.view svg{width:16px;transition:transform .25s}.card:hover .view svg{transform:translateX(5px)}
+.card.c1{grid-column:1/-1;display:grid;grid-template-columns:1.25fr 1fr}
+.card.c1 .thumb{border-bottom:0;border-right:1px solid var(--line);min-height:380px}
+.card.c1 .txt{padding:38px 40px;justify-content:center}
+.card.c1 h3{font-size:clamp(28px,3.4vw,46px)}
+.card.c2,.card.c3,.card.c4{grid-column:span 4}
+.card.c2 .thumb,.card.c3 .thumb,.card.c4 .thumb{aspect-ratio:16/10}
+@media(max-width:960px){.card.c1{grid-template-columns:1fr}.card.c1 .thumb{min-height:0;aspect-ratio:16/10;border-right:0;border-bottom:1px solid var(--line)}.card.c1 .txt{padding:26px}.card.c2,.card.c3,.card.c4{grid-column:1/-1}}
+@media(min-width:620px) and (max-width:960px){.card.c2,.card.c3,.card.c4{grid-column:span 6}.card.c4{grid-column:1/-1}}
+.thumb.art{display:grid;place-items:center;background:linear-gradient(180deg,#0d1730,#0a1224)}
+.thumb.art svg{width:100%;height:100%}
+
+/* competencies */
+.comp{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);background:var(--bg)}
+.comp div{padding:30px 28px 34px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.comp div:nth-child(3n){border-right:0}.comp div:nth-last-child(-n+3){border-bottom:0}
+.comp svg{width:34px;height:34px;color:var(--teal);margin-bottom:18px}
+.comp h3{font-size:22px;margin-bottom:8px}
+.comp p{font-size:15.5px;color:var(--fg2);margin:0}
+@media(max-width:900px){.comp{grid-template-columns:1fr 1fr}.comp div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}.comp div:nth-child(2n){border-right:0!important}.comp div:nth-last-child(-n+2){border-bottom:0!important}}
+@media(max-width:560px){.comp{grid-template-columns:1fr}.comp div{border-right:0!important}.comp div:last-child{border-bottom:0!important}.comp div:nth-last-child(2){border-bottom:1px solid var(--line)!important}}
+
+/* methodology */
+.method{display:grid;grid-template-columns:repeat(6,1fr);border-top:1px solid var(--line);position:relative}
+.method button{position:relative;text-align:left;background:none;border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:22px 18px 22px;color:var(--fg2);cursor:pointer;font:inherit}
+.method button:last-child{border-right:0}
+.method button .n{font:500 12px/1 var(--f-mono);color:var(--fg2);letter-spacing:.1em}
+.method button b{display:block;font:600 22px/1.1 var(--f-head);color:var(--fg);margin-top:14px}
+.method button::before{content:"";position:absolute;left:0;top:-1px;height:2px;width:0;background:var(--teal);transition:width .35s}
+.method button[aria-selected="true"]{background:var(--card);color:var(--fg)}
+.method button[aria-selected="true"]::before{width:100%}
+.method button[aria-selected="true"] .n{color:var(--teal)}
+.method-panel{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:28px;padding:34px 0 0;min-height:170px}
+.method-panel h3{grid-column:1/5;font-size:30px}
+.method-panel p{grid-column:5/-1;color:var(--fg2);font-size:18px;margin:0}
+.note{font:400 13.5px/1.55 var(--f-mono);color:var(--fg2);margin-top:28px;border-left:2px solid var(--amber);padding-left:14px;max-width:80ch}
+@media(max-width:900px){.method{grid-template-columns:repeat(3,1fr)}.method button:nth-child(3){border-right:0}.method-panel h3,.method-panel p{grid-column:1/-1}}
+@media(max-width:520px){.method{grid-template-columns:1fr 1fr}.method button:nth-child(3){border-right:1px solid var(--line)}.method button:nth-child(2n){border-right:0}}
+
+/* about */
+.about{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:40px}
+.portrait{grid-column:1/5;align-self:start;position:sticky;top:100px}
+.portrait .frame{aspect-ratio:4/5;border:1px dashed var(--fg2);display:grid;place-items:center;text-align:center;color:var(--fg2);padding:20px;background:var(--bg2);position:relative}
+.portrait .frame span{font:500 12px/1.6 var(--f-mono);letter-spacing:.1em;text-transform:uppercase}
+.about-copy{grid-column:6/-1}
+.about-copy .open p{font:500 clamp(20px,2.1vw,26px)/1.45 var(--f-head);color:var(--fg);letter-spacing:-.01em}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:36px 0}
+.dl div{padding:22px 24px;border-bottom:1px solid var(--line)}
+.dl div:nth-child(odd){border-right:1px solid var(--line)}
+.dl div:nth-last-child(-n+2){border-bottom:0}
+.dl h4{font:500 12px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:10px}
+.dl ul{margin:0;padding-left:18px;color:var(--fg2);font-size:15.5px}
+.dl li{margin:3px 0}
+.ph{color:var(--amber);font-family:var(--f-mono);font-size:.9em}
+@media(max-width:900px){.portrait{grid-column:1/-1;position:static;max-width:340px}.about-copy{grid-column:1/-1}.dl{grid-template-columns:1fr}.dl div{border-right:0!important}.dl div:nth-last-child(-n+2){border-bottom:1px solid var(--line)}.dl div:last-child{border-bottom:0}}
+
+/* skills */
+.skillgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:20px}
+.skillcat{grid-column:span 6;border:1px solid var(--line);background:var(--card);padding:28px}
+.skillcat:nth-child(5){grid-column:1/-1}
+.skillcat h3{font-size:24px;margin:6px 0 4px}
+.skillcat>p{color:var(--fg2);font-size:15px;margin:0 0 18px}
+.tl{display:flex;flex-wrap:wrap;gap:8px}
+.tool{background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:10px 14px;font:500 13.5px/1.2 var(--f-body);cursor:pointer;text-align:left;transition:.2s}
+.tool:hover{border-color:var(--teal)}
+.tool[aria-expanded="true"]{border-color:var(--teal);background:rgba(39,198,176,.1)}
+.tooldesc{margin-top:14px;padding:16px 18px;border-left:2px solid var(--teal);background:var(--bg);color:var(--fg2);font-size:15px;min-height:60px}
+.tooldesc b{color:var(--fg)}
+@media(max-width:900px){.skillcat{grid-column:1/-1}}
+
+/* contact */
+.contact{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:48px}
+.contact h2{grid-column:1/8;font-size:clamp(34px,5vw,68px)}
+.contact .ways{grid-column:1/6}
+.contact form{grid-column:7/-1;grid-row:2;border:1px solid var(--line);background:var(--card);padding:30px}
+.ways dl{margin:28px 0 0;display:grid;gap:0}
+.ways dl div{display:flex;justify-content:space-between;gap:16px;padding:16px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.ways dt{font:500 12px/1.6 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.ways dd{margin:0;font:500 15px/1.5 var(--f-mono);color:var(--amber)}
+.ways dd a{color:var(--amber)}
+.field{display:grid;gap:8px;margin-bottom:18px}
+.field label{font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg2)}
+.field input,.field textarea,.field select{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--fg);padding:13px 14px;font:400 16px/1.4 var(--f-body);border-radius:0}
+.field textarea{min-height:130px;resize:vertical}
+.field input:focus,.field textarea:focus{outline:2px solid var(--teal);outline-offset:0;border-color:var(--teal)}
+.field .err{display:none;color:var(--amber);font:500 12.5px/1.4 var(--f-mono)}
+.field.bad .err{display:block}.field.bad input,.field.bad textarea{border-color:var(--amber)}
+.formnote{font:400 12.5px/1.55 var(--f-mono);color:var(--fg2);margin:16px 0 0}
+.confirm{border:1px solid var(--teal);padding:20px;background:rgba(39,198,176,.07);display:none}
+.confirm.show{display:block}
+@media(max-width:900px){.contact h2,.contact .ways,.contact form{grid-column:1/-1;grid-row:auto}}
+
+/* footer */
+footer.site{border-top:1px solid var(--line);background:var(--bg2);padding-block:64px 36px}
+.foot{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:36px}
+.foot .about-f{grid-column:1/5}
+.foot .col{grid-column:span 2}
+.foot .col:nth-child(2){grid-column:6/8}
+.foot h4{font:500 12px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--fg2);margin-bottom:14px}
+.foot ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.foot a{color:var(--fg);text-decoration:none;font-size:15px}.foot a:hover{color:var(--teal)}
+.foot .big{font:600 22px/1.2 var(--f-head)}
+.foot-bot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-top:56px;padding-top:22px;border-top:1px solid var(--line);font:400 13px/1.5 var(--f-mono);color:var(--fg2)}
+.foot-bot em{font-style:normal;color:var(--teal);letter-spacing:.1em}
+@media(max-width:900px){.foot .about-f{grid-column:1/-1}.foot .col,.foot .col:nth-child(2){grid-column:span 6}}
+
+/* ---------- case study ---------- */
+.cs-hero{padding-top:clamp(40px,6vw,80px);padding-bottom:clamp(40px,5vw,72px);border-bottom:1px solid var(--line)}
+.crumbs{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.crumbs a{color:var(--fg2);text-decoration:none}.crumbs a:hover{color:var(--teal)}
+.cs-hero h1{font-size:clamp(34px,5.6vw,80px);text-transform:uppercase;letter-spacing:-.03em;line-height:1;max-width:18ch}
+.cs-hero .sub{font-size:clamp(18px,1.8vw,23px);color:var(--fg2);margin:24px 0 0;max-width:60ch}
+.badge-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:28px}
+.badge{font:500 12px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:9px 12px;border:1px solid var(--amber);color:var(--amber)}
+.cs-hero-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:40px;align-items:end}
+.cs-hero-grid>div:first-child{grid-column:1/8}
+.cs-hero-grid>div:last-child{grid-column:8/-1}
+@media(max-width:960px){.cs-hero-grid>div{grid-column:1/-1!important}}
+.cs{display:grid;grid-template-columns:230px minmax(0,1fr);gap:56px;padding-top:56px}
+.toc{position:sticky;top:96px;align-self:start;max-height:calc(100vh - 120px);overflow:auto}
+.toc ol{list-style:none;margin:0;padding:0;border-left:1px solid var(--line)}
+.toc a{display:block;padding:7px 0 7px 16px;margin-left:-1px;border-left:2px solid transparent;color:var(--fg2);text-decoration:none;font-size:13.5px;line-height:1.35}
+.toc a:hover{color:var(--fg)}
+.toc a.on{color:var(--teal);border-left-color:var(--teal)}
+.toc a span{font-family:var(--f-mono);font-size:11px;color:var(--fg2);margin-right:8px}
+@media(max-width:1020px){.cs{grid-template-columns:minmax(0,1fr)}.toc{display:none}}
+.cs-sec{padding-block:0 clamp(56px,7vw,92px);scroll-margin-top:90px}
+.cs-sec>header{display:flex;align-items:baseline;gap:16px;margin-bottom:26px;padding-top:26px;border-top:1px solid var(--line)}
+.cs-sec>header .label{flex:none}
+.cs-sec h2{font-size:clamp(28px,3.2vw,42px)}
+.cs-sec h3{font-size:22px;margin:32px 0 10px}
+.cs-sec p,.cs-sec li{color:var(--fg2)}
+.cs-sec p strong,.cs-sec li strong{color:var(--fg);font-weight:600}
+.cs-sec ul{padding-left:20px;max-width:70ch}.cs-sec li{margin:6px 0}
+.kv{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--line);margin:8px 0 0}
+.kv div{padding:18px 20px;border-bottom:1px solid var(--line)}
+.kv div:nth-child(odd){border-right:1px solid var(--line)}
+.kv div:nth-last-child(-n+2){border-bottom:0}
+.kv dt{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:6px}
+.kv dd{margin:0;color:var(--fg);font-size:16px;line-height:1.5}
+@media(max-width:700px){.kv{grid-template-columns:1fr}.kv div{border-right:0!important}.kv div:nth-last-child(2){border-bottom:1px solid var(--line)}}
+.q{border-left:3px solid var(--teal);padding:6px 0 6px 24px;margin:8px 0;font:500 clamp(21px,2.4vw,30px)/1.35 var(--f-head);color:var(--fg);max-width:34em;letter-spacing:-.01em}
+.status{display:inline-block;font:500 10.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;margin-right:8px;vertical-align:2px;border:1px solid}
+.s-conf{color:var(--teal);border-color:var(--teal)}
+.s-rec{color:var(--teal);border-color:rgba(39,198,176,.45);background:rgba(39,198,176,.08)}
+.s-pot{color:var(--amber);border-color:var(--amber)}
+.s-int{color:var(--fg2);border-color:var(--fg2)}
+.s-hyp{color:#c7b8ff;border-color:#8f7fd6}
+.s-lim{color:var(--amber);border-color:rgba(240,164,93,.45);background:rgba(240,164,93,.08)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 24px;padding:14px 16px;border:1px solid var(--line);background:var(--bg2);font-size:13px;color:var(--fg2)}
+.legend .status{margin-right:6px}
+.findlist{list-style:none;padding:0!important;display:grid;gap:0;border:1px solid var(--line);max-width:none!important}
+.findlist li{margin:0;padding:16px 20px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:128px 1fr;gap:16px;align-items:start}
+.findlist li:last-child{border-bottom:0}
+.findlist .status{margin:0;justify-self:start}
+@media(max-width:600px){.findlist li{grid-template-columns:1fr;gap:8px}}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));border:1px solid var(--line);margin:24px 0}
+.stats div{padding:20px 22px;border-right:1px solid var(--line)}
+.stats div:last-child{border-right:0}
+.stats b{display:block;font:600 clamp(30px,3.4vw,46px)/1 var(--f-head);color:var(--fg);font-variant-numeric:tabular-nums}
+.stats span{display:block;margin-top:8px;font:500 11.5px/1.45 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--fg2)}
+.stats .am b{color:var(--amber)}.stats .te b{color:var(--teal)}
+.panel{border:1px solid var(--line);background:var(--bg2);position:relative;margin:24px 0}
+.panel::before,.panel::after{content:"";position:absolute;width:12px;height:12px;border:2px solid var(--amber);pointer-events:none}
+.panel::before{left:-1px;top:-1px;border-right:0;border-bottom:0}
+.panel::after{right:-1px;bottom:-1px;border-left:0;border-top:0}
+.panel>.ph-bar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:11px 16px;border-bottom:1px solid var(--line);font:500 11.5px/1.4 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2)}
+.panel>.ph-bar b{color:var(--amber);font-weight:500}
+.panel .pb{padding:22px}
+.panel figcaption,.panel .cap{padding:12px 16px 16px;border-top:1px solid var(--line);font-size:14px;color:var(--fg2);line-height:1.55}
+.reconstruction{color:var(--teal)!important}
+.diagram{width:100%;height:auto;display:block}
+.dscroll{overflow-x:auto}
+.dscroll .diagram{min-width:640px}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;margin-top:20px}
+.gallery.wide{grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
+.shot{background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;margin:0}
+.shot button{display:block;position:relative;background:#05080f;border:0;padding:0;cursor:zoom-in;aspect-ratio:16/10;overflow:hidden;width:100%}
+.shot button img{width:100%;height:100%;object-fit:contain;image-rendering:auto}
+.shot button::after{content:"Enlarge";position:absolute;right:10px;bottom:10px;font:500 10.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;background:rgba(11,16,32,.9);color:var(--teal);padding:6px 8px;border:1px solid var(--line);opacity:0;transition:.2s}
+.shot button:hover::after,.shot button:focus-visible::after{opacity:1}
+.shot figcaption{padding:12px 14px 14px;font-size:13.5px;color:var(--fg2);line-height:1.5}
+.shot figcaption b{display:block;font:500 11px/1.4 var(--f-mono);letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:4px}
+.hero-shot{margin:0;background:var(--bg2);border:1px solid var(--line);position:relative}
+.hero-shot img{width:100%;aspect-ratio:4/3;object-fit:cover}
+.hero-shot figcaption{padding:12px 14px;font:500 11px/1.5 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--fg2);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hero-shot figcaption b{color:var(--amber);font-weight:500}
+details.x{border:1px solid var(--line);background:var(--bg2);margin:12px 0}
+details.x summary{cursor:pointer;padding:16px 20px;font:600 17px/1.35 var(--f-head);color:var(--fg);list-style:none;display:flex;justify-content:space-between;gap:16px;align-items:center}
+details.x summary::-webkit-details-marker{display:none}
+details.x summary::after{content:"+";font:400 24px/1 var(--f-mono);color:var(--teal);flex:none}
+details.x[open] summary::after{content:"\2212"}
+details.x[open] summary{border-bottom:1px solid var(--line)}
+details.x .xb{padding:18px 20px}
+details.x .xb p:last-child{margin-bottom:0}
+.tbl{overflow-x:auto;border:1px solid var(--line);margin:20px 0}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:15px}
+th,td{text-align:left;padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--fg2)}
+th{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--fg);background:var(--bg2);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td:first-child{color:var(--fg);font-weight:500}
+td.y{color:var(--teal)}td.n{color:var(--fg2);opacity:.75}td.p{color:var(--amber)}
+.dvs{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin:24px 0}
+.dvs>div{padding:30px 30px 34px}
+.dvs>div+div{border-left:1px solid var(--line)}
+.dvs h3{margin:8px 0 6px;font-size:clamp(28px,3vw,40px);text-transform:uppercase}
+.dvs .big{font:500 clamp(18px,1.7vw,22px)/1.35 var(--f-head);color:var(--fg);margin:0 0 18px}
+.dvs ul{margin:0;padding-left:18px}
+.dot{background:linear-gradient(180deg,rgba(39,198,176,.09),transparent 60%)}
+.show{background:linear-gradient(180deg,rgba(240,164,93,.09),transparent 60%)}
+@media(max-width:760px){.dvs{grid-template-columns:1fr}.dvs>div+div{border-left:0;border-top:1px solid var(--line)}}
+.flow{list-style:none;padding:0!important;margin:20px 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:0;border:1px solid var(--line);counter-reset:s;max-width:none!important}
+.flow li{margin:0!important;padding:18px 18px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);counter-increment:s;font-size:14.5px;line-height:1.5;margin:0}
+.flow li::before{content:counter(s,decimal-leading-zero);display:block;font:500 12px/1 var(--f-mono);letter-spacing:.1em;color:var(--amber);margin-bottom:10px}
+.flow li b{display:block;color:var(--fg);font:600 16.5px/1.25 var(--f-head);margin-bottom:6px}
+.skills-demo{display:flex;flex-wrap:wrap;gap:8px}
+.skills-demo span{border:1px solid var(--line);padding:8px 12px;font:500 12.5px/1 var(--f-mono);color:var(--fg);background:var(--bg2)}
+.takeaway{border:1px solid var(--teal);background:linear-gradient(135deg,rgba(39,198,176,.1),transparent 70%);padding:clamp(28px,4vw,52px);margin-top:8px}
+.takeaway p{color:var(--fg);font:500 clamp(21px,2.3vw,30px)/1.4 var(--f-head);letter-spacing:-.01em;max-width:36em;margin-bottom:16px}
+.takeaway small{display:block;color:var(--fg2);font-size:14.5px;line-height:1.55;max-width:64ch}
+.next{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);margin-top:20px}
+.next a{display:block;padding:32px 30px;text-decoration:none;color:var(--fg);transition:background .25s}
+.next a+a{border-left:1px solid var(--line);text-align:right}
+.next a:hover{background:var(--card)}
+.next b{display:block;font:600 clamp(20px,2.2vw,28px)/1.15 var(--f-head);margin-top:10px}
+@media(max-width:700px){.next{grid-template-columns:1fr}.next a+a{border-left:0;border-top:1px solid var(--line);text-align:left}}
+.note-box{border:1px solid var(--line);border-left:3px solid var(--amber);padding:14px 18px;margin:18px 0;background:var(--bg2);font-size:15px;color:var(--fg2)}
+.note-box b{color:var(--amber);font-family:var(--f-mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:4px}
+
+/* lightbox */
+.lb{position:fixed;inset:0;z-index:100;background:rgba(5,8,15,.94);display:none;flex-direction:column;padding:max(16px,env(safe-area-inset-top,0px)) var(--gutr) max(16px,env(safe-area-inset-bottom,0px)) var(--gut)}
+.lb.open{display:flex}
+.lb-bar{display:flex;align-items:center;gap:12px;justify-content:space-between;padding-bottom:12px}
+.lb-bar .cnt{font:500 12px/1 var(--f-mono);color:var(--fg2);letter-spacing:.1em}
+.lb-btns{display:flex;gap:8px}
+.lb button{min-width:46px;min-height:46px;background:var(--bg2);border:1px solid var(--line);color:var(--fg);font:500 14px/1 var(--f-mono);cursor:pointer;padding:0 14px}
+.lb button:hover{border-color:var(--teal);color:var(--teal)}
+.lb-stage{flex:1;min-height:0;display:grid;place-items:center;overflow:auto}
+.lb-stage img{max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain}
+.lb-stage img.nat{max-width:none;max-height:none}
+.lb-cap{padding-top:12px;color:var(--fg2);font-size:14.5px;max-width:90ch}
+.toast{position:fixed;left:50%;bottom:max(24px,env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(20px);background:var(--card);border:1px solid var(--amber);color:var(--fg);padding:12px 18px;font:500 13px/1.4 var(--f-mono);opacity:0;pointer-events:none;transition:.25s;z-index:120;max-width:calc(100vw - 32px)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@media print{header.site,.toc,.progress,.lb{display:none}}
+
+.hero-grid>*,.about>*,.intro>*,.contact>*,.sec-head>*,.cs-hero-grid>*,.cards>*,.skillgrid>*,.foot>*,.cs>div{min-width:0}
+@media(max-width:900px){.hero-grid,.about,.intro,.contact,.sec-head,.cs-hero-grid,.cards,.skillgrid,.foot{column-gap:0}}
+.panel,.shot,.tbl,.kv,.stats{min-width:0;max-width:100%}
+@media(max-width:520px){.scene .tag{font-size:9.5px;padding:3px 6px}.scene .tag:nth-of-type(3){display:none}.scene .tag:nth-of-type(4){left:11%;right:auto;bottom:20%}}
+
+/* ---- role switching ---- */
+.rr[data-role="forensics"] [data-for]:not([data-for~="forensics"]),
+.rr[data-role="soc"] [data-for]:not([data-for~="soc"]),
+.rr[data-role="electrical"] [data-for]:not([data-for~="electrical"]){display:none!important}
+.rs{display:inline-flex;border:1px solid var(--line);background:var(--bg2)}
+.rs button{min-height:40px;padding:0 14px;background:none;border:0;border-right:1px solid var(--line);color:var(--fg2);font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.rs button:last-child{border-right:0}
+.rs button:hover{color:var(--fg)}
+.rs button[aria-pressed="true"]{background:var(--teal);color:var(--ink)}
+.rs .s{display:none}
+.rs-head{margin-left:auto}
+.rs-head button{min-height:34px;padding:0 10px;font-size:11px}
+.rs-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:28px}
+.rs-m{display:none}
+@media(max-width:1180px){.rs-head{display:none}}
+@media(max-width:900px){.nav ul .rs-m{display:block;padding:14px 0}.rs-menu{display:flex}.rs-menu button{flex:1;padding:0 6px}}
+@media(max-width:520px){.rs-hero{display:flex;width:100%}.rs-hero button{flex:1;padding:0 4px;font-size:11px}.rs-hero .l{display:none}.rs-hero .s{display:inline}.rs-menu .l{display:none}.rs-menu .s{display:inline}}
+.nav .cvl{display:inline-flex;align-items:center;gap:8px;color:var(--teal);padding:16px 0}
+.nav .cvl svg,.foot .cvl svg{width:15px;height:15px}
+.foot .cvl{color:inherit}
+.brand span[data-for]{display:block}
+/* hero portrait */
+.pscene{position:relative;aspect-ratio:4/5;border:1px solid var(--line);background:var(--bg2);overflow:hidden;max-width:520px;margin-inline:auto}
+.pframe{position:absolute;inset:8%;border:1px dashed var(--fg2);background:linear-gradient(180deg,#0d1730,#0a1224);display:grid;place-items:center;overflow:hidden}
+.pframe.has{border:1px solid var(--amber)}
+.pmsg{display:grid;justify-items:center;gap:6px;color:var(--fg2);text-align:center;padding:16px}
+.pmsg .sil{width:46%;max-width:150px;opacity:.7}
+.pmsg span{font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase}
+.pmsg small{font:400 11px/1.4 var(--f-mono);color:var(--fg2);opacity:.8}
+.pframe.has .pmsg{display:none}
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pimg[hidden]{display:none}
+.cm{position:absolute;width:18px;height:18px;border:2px solid var(--amber)}
+.cm.a{left:5%;top:5%;border-right:0;border-bottom:0}.cm.b{right:5%;top:5%;border-left:0;border-bottom:0}.cm.c{left:5%;bottom:5%;border-right:0;border-top:0}.cm.d{right:5%;bottom:5%;border-left:0;border-top:0}
+.pscene .tag{z-index:2}
+.portrait .frame{position:relative;overflow:hidden}
+.portrait .frame.has{border-style:solid}
+.portrait .frame.has>span{display:none}
+.hero-roles{display:block}
+.hero-roles h1{font-size:clamp(44px,7.6vw,104px);font-weight:700;letter-spacing:-.035em;text-transform:uppercase;line-height:.95}
+.hero-roles h1 em{font-style:normal;color:var(--teal)}
+.hero-roles .lede{font-size:clamp(17px,1.5vw,20px);color:var(--fg2);margin:28px 0 36px;max-width:56ch}
+.hero-roles [data-for]>*{animation:rise .5s cubic-bezier(.2,.7,.2,1) backwards}
+/* experience cards */
+.card.ec{grid-column:span 6;cursor:default}
+.card.ec:hover{transform:none;border-color:var(--line)}
+.card.ec .thumb{aspect-ratio:16/8}
+.ecl{margin:0;padding-left:18px;color:var(--fg2);font-size:15px}.ecl li{margin:6px 0}
+.card .when{font:500 12px/1.5 var(--f-mono);letter-spacing:.06em;color:var(--fg2)!important}
+@media(max-width:960px){.card.ec{grid-column:1/-1}}
+pre.code{background:var(--ink);border:1px solid var(--line);padding:16px;overflow-x:auto;font:400 12.5px/1.55 var(--f-mono);color:var(--fg);margin:0}
+.intro>.pillars{grid-column:1/-1}
+.btn{white-space:nowrap}
+
+header.site{top:env(safe-area-inset-top,0px)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
+</style></head><body>
+<div class="rr" data-role="forensics"><a class="skip" href="#main">Skip to content</a><div class="progress" aria-hidden="true"></div>
+<header class="site"><div class="wrap nav">
+<a class="brand" href="index.html#top" aria-label="Home"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28" stroke="#F0A45D" stroke-width="2"/><text x="20" y="25.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="500" font-size="14" fill="#27C6B0">DF</text></svg><span data-for="forensics"><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span><span data-for="soc"><b>SOC Analyst</b><i>Threat &amp; vulnerability</i></span><span data-for="electrical"><b>Electrical Engineering</b><i>High-voltage systems</i></span></a>
+<ul id="navlist"><li><a href="index.html#top">Home</a></li><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations"><span data-for="forensics">Investigations</span><span data-for="soc">Projects</span><span data-for="electrical">Experience</span></a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li><li class="rs-m"><div class="rs rs-menu" role="group" aria-label="Choose a profile view"><button type="button" data-role-btn="electrical" aria-pressed="false"><span class="l">Electrical Engineering</span><span class="s">Electrical</span></button><button type="button" data-role-btn="forensics" aria-pressed="true"><span class="l">Digital Forensics</span><span class="s">Forensics</span></button><button type="button" data-role-btn="soc" aria-pressed="false"><span class="l">SOC Analyst</span><span class="s">SOC</span></button></div></li><li class="cv-m"><a class="cvl" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a></li></ul>
+<div class="rs rs-head" role="group" aria-label="Choose a profile view"><button type="button" data-role-btn="electrical" aria-pressed="false"><span class="l">Electrical Engineering</span><span class="s">Electrical</span></button><button type="button" data-role-btn="forensics" aria-pressed="true"><span class="l">Digital Forensics</span><span class="s">Forensics</span></button><button type="button" data-role-btn="soc" aria-pressed="false"><span class="l">SOC Analyst</span><span class="s">SOC</span></button></div>
+<a class="btn sm cv" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="btn sm cv" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="btn sm cv" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a>
+<button class="menu-btn" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
+</div></header><main id="main"><div data-pagerole="soc"></div><div class="cs-hero grid-fade"><div class="wrap">
+<div class="crumbs label"><a href="index.html#investigations">Investigations</a><span>/</span><span class="a">SOC-03</span></div>
+<div class="cs-hero-grid"><div><h1>Invoice fraud phishing analysis</h1><p class="sub">Triage of a suspected invoice-fraud email: headers, authentication, sender identity, links, attachment and response.</p><div class="badge-row"><span class="badge">Training exercise</span><span class="badge">Email analysis</span></div></div><div><figure class="hero-shot"><div class="dscroll" style="background:#0a1224;padding:6px"><svg class="" viewBox="0 0 480 300" role="img" aria-label="Illustration: an envelope with three different sender identities and failed SPF, DKIM and DMARC checks" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="400" y1="0" x2="400" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="440" y1="0" x2="440" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="480" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="480" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="480" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="480" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="480" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="480" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="480" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="480" y2="280" stroke="#1D2B40" stroke-width="1" /><rect x="60" y="40" width="360" height="190" stroke="#27C6B0" fill="#172238" stroke-width="1.5" /><line x1="60" y1="40" x2="240" y2="150" stroke="#26344B" stroke-width="1" /><line x1="420" y1="40" x2="240" y2="150" stroke="#26344B" stroke-width="1" /><text x="80" y="160" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="1">From</text><text x="400" y="160" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="end" font-weight="500" letter-spacing="0">medequip-solutions</text><text x="80" y="182" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="1">Return-Path</text><text x="400" y="182" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#F0A45D" text-anchor="end" font-weight="500" letter-spacing="0">medequip-invoices</text><text x="80" y="204" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="1">Reply-To</text><text x="400" y="204" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#F0A45D" text-anchor="end" font-weight="500" letter-spacing="0">free-mail address</text><rect x="88" y="244" width="100" height="22" stroke="#F0A45D" fill="#0B1020" stroke-width="1" /><text x="138" y="259" font-family="IBM Plex Mono,monospace" font-size="10" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">SPF fail</text><rect x="198" y="244" width="100" height="22" stroke="#F0A45D" fill="#0B1020" stroke-width="1" /><text x="248" y="259" font-family="IBM Plex Mono,monospace" font-size="10" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">DKIM none</text><rect x="308" y="244" width="100" height="22" stroke="#F0A45D" fill="#0B1020" stroke-width="1" /><text x="358" y="259" font-family="IBM Plex Mono,monospace" font-size="10" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">DMARC fail</text><text x="24" y="289" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="1.5">ILLUSTRATION · THREE SENDER IDENTITIES</text></svg></div><figcaption><span>Illustration</span><span>Training sample</span></figcaption></figure></div></div>
+</div></div>
+<div class="wrap cs"><nav class="toc" aria-label="Case study sections"><ol><li><a href="#intro"><span>01</span>Project introduction</a></li><li><a href="#overview"><span>02</span>Case overview</a></li><li><a href="#headers"><span>03</span>Header and authentication analysis</a></li><li><a href="#identity"><span>04</span>Sender identity</a></li><li><a href="#links"><span>05</span>Links, tracking pixel and attachment</a></li><li><a href="#time"><span>06</span>Timestamp analysis</a></li><li><a href="#verdict"><span>07</span>Justification</a></li><li><a href="#iocs"><span>08</span>Indicators of compromise</a></li><li><a href="#recs"><span>09</span>Recommendations</a></li><li><a href="#limits"><span>10</span>Limitations</a></li><li><a href="#skills"><span>11</span>Skills demonstrated</a></li><li><a href="#takeaway"><span>12</span>Final takeaway</a></li></ol></nav><div><section class="cs-sec" id="intro" aria-labelledby="intro-h"><header><span class="label t">01</span><h2 id="intro-h">Project introduction</h2></header><p>An email claiming to be from the supplier MedEquip Solutions reached the Accounts Payable mailbox of MediSure Health Network on Monday 9 September 2024 at 07:14 UTC. It said Invoice #MSH-2024-0912 was past due and demanded $18,740.00 within 24 hours, with a threat to halt medical supply delivery.</p><p>The message was examined as a SOC case-study exercise and classified as malicious invoice fraud (business email compromise).</p><div class="note-box"><b>Training sample</b>The domains, addresses and hash are fabricated indicators. Reputation lookups such as MXToolbox, VirusTotal and AbuseIPDB were deliberately not used, because they do not apply to made-up indicators.</div></section><section class="cs-sec" id="overview" aria-labelledby="overview-h"><header><span class="label t">02</span><h2 id="overview-h">Case overview</h2></header><dl class="kv"><div><dt>Classification</dt><dd>Malicious: invoice fraud / BEC phishing</dd></div><div><dt>Target</dt><dd>Accounts Payable mailbox, MediSure Health Network (fictional)</dd></div><div><dt>Impersonated vendor</dt><dd>MedEquip Solutions (fictional)</dd></div><div><dt>Method</dt><dd>Manual inspection of raw .eml headers and MIME structure, base64 decoding and SHA-256 hashing of the attachment</dd></div></dl><div class="stats"><div class="am"><b>$18,740</b><span>requested within 24 h</span></div><div class="te"><b>3</b><span>sender identities</span></div><div class=""><b>2</b><span>credential-harvesting links</span></div><div class="am"><b>3</b><span>authentication checks failed or absent</span></div></div></section><section class="cs-sec" id="headers" aria-labelledby="headers-h"><header><span class="label t">03</span><h2 id="headers-h">Header and authentication analysis</h2></header><p>The only Received header names mail.medequip-invoices.com at 192.168.0.50, a private (RFC 1918) address. A legitimate internet sender cannot present a private address to a public mail server, which points to an incomplete or falsified header chain. With a single hop there is no relay path to follow and no IP reputation to check.</p><div class="tbl"><table><thead><tr><th scope="col">Check</th><th scope="col">Result</th><th scope="col">Meaning</th></tr></thead><tbody><tr><td class="">SPF</td><td class="n">fail</td><td class="">The sending IP is not authorised for medequip-invoices.com, and that domain differs from the visible From domain, so it would not align even on a pass.</td></tr><tr><td class="">DKIM</td><td class="n">none</td><td class="">The message is unsigned, so origin and integrity cannot be verified.</td></tr><tr><td class="">DMARC</td><td class="n">fail, action=quarantine</td><td class="">The visible From domain failed authentication and alignment, and the published policy calls for quarantine.</td></tr></tbody></table></div><p style="margin-top:14px">Analogy: SPF is the guest list at the door, DKIM is the signature on a letter, and DMARC is the host's instruction for what to do when either check fails.</p><div class="gallery wide"><figure class="shot"><button type="button" data-lb="assets/img/phish-received-auth-headers.webp" data-alt="Raw email headers with the received and authentication results highlighted" data-cap="Exhibit INV-01. Received and authentication headers from the raw .eml, highlighted."><img src="assets/img/phish-received-auth-headers.webp" alt="Raw email headers with the received and authentication results highlighted" loading="lazy" decoding="async"></button><figcaption><b>Exhibit INV-01</b>Received and authentication headers from the raw .eml, highlighted.</figcaption></figure></div><p><span class="status s-lim">Limitation</span>The headers record the DMARC disposition but do not show what the gateway actually did with the message, so the message trace should be checked to confirm it was held.</p></section><section class="cs-sec" id="identity" aria-labelledby="identity-h"><header><span class="label t">04</span><h2 id="identity-h">Sender identity</h2></header><figure class="panel" style="margin-inline:0"><div class="ph-bar"><span>Sender identity</span><b>Illustration</b></div><div class="pb"><div class="dscroll"><svg class="diagram" viewBox="0 0 760 170" role="img" aria-label="Diagram: the visible sender, the actual sending domain and the reply address are three different identities" xmlns="http://www.w3.org/2000/svg"><text x="8" y="20" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="start" font-weight="500" letter-spacing="1.2">WHAT THE READER SEES VS WHAT SENT IT</text><rect x="8" y="34" width="220" height="90" stroke="#A5AFBF" fill="#172238" stroke-width="1.2" /><text x="118" y="56" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="500" letter-spacing="1">Visible sender</text><text x="118" y="84" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">billing@</text><text x="118" y="102" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="#F4F5F7" text-anchor="middle" font-weight="500" letter-spacing="0">medequip-solutions.com</text><rect x="270" y="34" width="220" height="90" stroke="#F0A45D" fill="#172238" stroke-width="1.5" /><text x="380" y="56" font-family="IBM Plex Mono,monospace" font-size="10" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1">Actual sending domain</text><text x="380" y="84" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">Return-Path, Message-ID:</text><text x="380" y="102" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">medequip-invoices.com</text><rect x="532" y="34" width="220" height="90" stroke="#F0A45D" fill="#172238" stroke-width="1.5" /><text x="642" y="56" font-family="IBM Plex Mono,monospace" font-size="10" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1">Replies go to</text><text x="642" y="84" font-family="IBM Plex Mono,monospace" font-size="11.5" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="0">free-mail address</text><text x="642" y="102" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">(not the vendor domain)</text><line x1="228" y1="79" x2="268" y2="79" stroke="#A5AFBF" stroke-width="1.5" /><path d="M268 79 l-7 -4 v8z" fill="#A5AFBF" transform="rotate(0)"/><line x1="490" y1="79" x2="530" y2="79" stroke="#A5AFBF" stroke-width="1.5" /><path d="M530 79 l-7 -4 v8z" fill="#A5AFBF" transform="rotate(0)"/><text x="8" y="150" font-family="IBM Plex Mono,monospace" font-size="10.5" fill="#A5AFBF" text-anchor="start" font-weight="400" letter-spacing="0">Both links place the vendor name in a subdomain of an unrelated registrable domain, and the two links differ from each other.</text></svg></div></div><div class="cap reconstruction">Three different identities in one message.</div></figure><div class="tbl"><table><thead><tr><th scope="col">Header</th><th scope="col">Value</th></tr></thead><tbody><tr><td class="">From</td><td class="">billing@medequip-solutions.com, the vendor identity shown to the reader</td></tr><tr><td class="">Return-Path / Message-ID</td><td class="">medequip-invoices.com, the lookalike domain that actually sent it</td></tr><tr><td class="">Reply-To</td><td class="">A free-mail address that diverts replies away from the vendor domain</td></tr></tbody></table></div><p style="margin-top:14px">The X-Mailer header shows PHPMailer 6.1.2, a general-purpose PHP mailing library often used by bulk and phishing mailers, rather than a billing system. The message is flagged X-Priority 1 to add urgency, and the Message-ID contains the string acctrecovery, echoing the Reply-To address.</p><div class="gallery wide"><figure class="shot"><button type="button" data-lb="assets/img/phish-sender-identity.webp" data-alt="Raw email headers showing the From, Reply-To and mailer fields" data-cap="Exhibit INV-02. Sender-related headers from the raw .eml."><img src="assets/img/phish-sender-identity.webp" alt="Raw email headers showing the From, Reply-To and mailer fields" loading="lazy" decoding="async"></button><figcaption><b>Exhibit INV-02</b>Sender-related headers from the raw .eml.</figcaption></figure></div></section><section class="cs-sec" id="links" aria-labelledby="links-h"><header><span class="label t">05</span><h2 id="links-h">Links, tracking pixel and attachment</h2></header><ul class="findlist"><li><span class="status s-conf">Confirmed</span><span><strong>Link mismatch.</strong> The HTML Review &amp; Pay Invoice button and the plain-text link point to two unrelated registrable domains. Both put the vendor name in a subdomain to look familiar.</span></li><li><span class="status s-conf">Confirmed</span><span><strong>Tracking pixel.</strong> A hidden 1x1 image loaded over plain HTTP reports when the email is opened, telling the sender the mailbox is active.</span></li><li><span class="status s-conf">Confirmed</span><span><strong>Disguised attachment.</strong> The body promises a PDF, but the file is Invoice_MSH-2024-0912.html containing only a script block. This matches the HTML-smuggling pattern. In this sample the script is a placeholder with no executable content.</span></li></ul><div class="gallery wide"><figure class="shot"><button type="button" data-lb="assets/img/phish-links-pixel-attachment.webp" data-alt="Email source showing two phishing links, a hidden tracking pixel and an HTML attachment" data-cap="Exhibit INV-03. Links, hidden pixel and attachment from the .eml (defanged)."><img src="assets/img/phish-links-pixel-attachment.webp" alt="Email source showing two phishing links, a hidden tracking pixel and an HTML attachment" loading="lazy" decoding="async"></button><figcaption><b>Exhibit INV-03</b>Links, hidden pixel and attachment from the .eml (defanged).</figcaption></figure></div></section><section class="cs-sec" id="time" aria-labelledby="time-h"><header><span class="label t">06</span><h2 id="time-h">Timestamp analysis</h2></header><p>The Date header (07:14:50) and the receipt time (07:14:52) are in the correct order, so the header timestamps show no anomaly. The content is less consistent: it says accounts more than 30 days past due face suspension, yet the invoice was due on 7 September 2024, only two days before the email arrived.</p></section><section class="cs-sec" id="verdict" aria-labelledby="verdict-h"><header><span class="label t">07</span><h2 id="verdict-h">Justification</h2></header><p>This is an attempt at fraudulent vendor invoice spoofing. The basis is a private originating IP, a lookalike sending domain, SPF, DKIM and DMARC failures, a free-mail Reply-To, two distinct credential-harvesting links, a tracking pixel, an HTML attachment shown as a PDF, scripted mailer tooling, an overdue claim that contradicts its own dates, urgency, and threats aimed at a healthcare supply chain.</p></section><section class="cs-sec" id="iocs" aria-labelledby="iocs-h"><header><span class="label t">08</span><h2 id="iocs-h">Indicators of compromise</h2></header><div class="tbl"><table><thead><tr><th scope="col">Type</th><th scope="col">Indicator (defanged)</th></tr></thead><tbody><tr><td class="">Domain</td><td class="">medequip-invoices[.]com</td></tr><tr><td class="">Domain</td><td class="">thebandalisty[.]com</td></tr><tr><td class="">Domain</td><td class="">secure-invoicepay[.]com</td></tr><tr><td class="">Email</td><td class="">medequip.accounts.recovery@gmail[.]com</td></tr><tr><td class="">URL</td><td class="">hxxps://medequip-billing-review[.]secure-invoicepay[.]com/login?ref=MSH20240912</td></tr><tr><td class="">URL</td><td class="">hxxps://medequip-billing-review[.]thebandalisty[.]com/login?ref=MSH20240912</td></tr><tr><td class="">URL</td><td class="">hxxp://thebandalisty[.]com/o/MSH20240912.gif (tracking pixel)</td></tr><tr><td class="">File</td><td class="">Invoice_MSH-2024-0912.html</td></tr><tr><td class="">SHA-256</td><td class="">0bf21e8fa749d22699d9333ef244710492a689e15c5ea3f34537c64c319f575c</td></tr><tr><td class="">Spoofed identity</td><td class="">billing@medequip-solutions[.]com (confirm with MedEquip before blocking the vendor's real domain)</td></tr></tbody></table></div></section><section class="cs-sec" id="recs" aria-labelledby="recs-h"><header><span class="label t">09</span><h2 id="recs-h">Recommendations</h2></header><ul class="findlist"><li><span class="status s-int">Interpretation</span><span><strong>Payment controls.</strong> Verify urgent invoices and bank-detail changes by phone using contact details already on file, and require dual approval.</span></li><li><span class="status s-int">Interpretation</span><span><strong>Email security.</strong> Apply SPF, DKIM and DMARC results consistently, enable impersonation protection for key vendor domains, tag external senders and flag Reply-To mismatches.</span></li><li><span class="status s-int">Interpretation</span><span><strong>Attachments and links.</strong> Block or sandbox external HTML attachments, enable time-of-click URL scanning and block remote images by default.</span></li><li><span class="status s-int">Interpretation</span><span><strong>Training.</strong> Invoice-fraud awareness and phishing simulations for finance and procurement staff.</span></li><li><span class="status s-int">Interpretation</span><span><strong>Response.</strong> Block the indicators, search mailboxes for related messages and remove them, review proxy and DNS logs, reset credentials for anyone who entered them, and notify MedEquip.</span></li></ul></section><section class="cs-sec" id="limits" aria-labelledby="limits-h"><header><span class="label t">10</span><h2 id="limits-h">Limitations</h2></header><ul class="findlist"><li><span class="status s-lim">Limitation</span><span><strong>Training sample.</strong> Indicators are fabricated, so no reputation or threat-intelligence checks were possible.</span></li><li><span class="status s-lim">Limitation</span><span><strong>Single hop.</strong> No relay path exists to trace.</span></li><li><span class="status s-lim">Limitation</span><span><strong>Gateway action unconfirmed.</strong> The message trace is needed to confirm quarantine.</span></li></ul></section><section class="cs-sec" id="skills" aria-labelledby="skills-h"><header><span class="label t">11</span><h2 id="skills-h">Skills demonstrated</h2></header><div class="skills-demo"><span>Email header analysis</span><span>SPF, DKIM and DMARC interpretation</span><span>Phishing triage</span><span>MIME and attachment inspection</span><span>IOC extraction and defanging</span><span>Business email compromise recognition</span><span>Response recommendations</span></div></section><section class="cs-sec" id="takeaway" aria-labelledby="takeaway-h"><header><span class="label t">12</span><h2 id="takeaway-h">Final takeaway</h2></header><div class="takeaway"><p>Authentication results should have stopped this message, but the headers alone do not prove they did.</p><small>Attackers register new lookalike domains cheaply, which is why payment verification, impersonation protection and finance-focused training are needed alongside SPF, DKIM and DMARC.</small></div></section>
+<nav class="next" aria-label="Case study navigation"><a href="nginx-ansible-remediation.html"><span class="label">&larr; Previous investigation</span><b>nginx Remediation with Ansible</b></a><a href="darkside-threat-profile.html"><span class="label">Next investigation &rarr;</span><b>DarkSide Ransomware Threat Profile</b></a></nav>
+</div></div></main><footer class="site"><div class="wrap">
+<div class="foot">
+<div class="about-f"><p class="big"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p><p style="color:var(--fg2);margin:8px 0 0">Electrical engineering · Digital forensics · SOC analysis</p>
+<p style="color:var(--fg2);font-size:14px;margin-top:18px" data-for="forensics soc">Academic and training case studies. Scenarios are simulations built for research and assessment, not live engagements.</p></div>
+<div class="col"><h4>Navigate</h4><ul><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations">Investigations</a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li></ul></div>
+<div class="col"><h4><span data-for="forensics soc">Investigations</span><span data-for="electrical">Experience</span></h4><ul data-for="forensics"><li><a href="alexa-iot-forensics.html">Amazon Alexa IoT Forensics</a></li><li><a href="raid-windows-forensics.html">RAID Reconstruction & Windows Forensics</a></li><li><a href="snapchat-mobile-forensics.html">Snapchat Mobile Forensics</a></li><li><a href="uc-browser-forensics.html">UC Browser Forensics</a></li></ul><ul data-for="soc"><li><a href="darkside-threat-profile.html">DarkSide Ransomware Threat Profile</a></li><li><a href="nginx-ansible-remediation.html">nginx Remediation with Ansible</a></li><li><a href="invoice-fraud-phishing-analysis.html">Invoice Fraud Phishing Analysis</a></li></ul><ul data-for="electrical"><li><a href="index.html#investigations">Transmission Company of Nigeria</a></li><li><a href="index.html#investigations">Vitek Engineering Company</a></li></ul></div>
+<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a class="cvl" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a></li></ul></div>
+</div>
+<div class="foot-bot"><span>&copy; <span class="yr">2026</span> <span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></span><em>Investigate. Analyse. Understand.</em></div>
+</div></footer><div class="toast" role="status" aria-live="polite"></div></div>
+<script>(function(){
+'use strict';
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* mobile menu */
+var mb=$('.menu-btn'),nl=$('#navlist');
+if(mb&&nl){
+  mb.addEventListener('click',function(){var o=nl.classList.toggle('open');mb.setAttribute('aria-expanded',o);});
+  $$('a',nl).forEach(function(a){a.addEventListener('click',function(){nl.classList.remove('open');mb.setAttribute('aria-expanded','false');});});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&nl.classList.contains('open')){nl.classList.remove('open');mb.setAttribute('aria-expanded','false');mb.focus();}});
+}
+
+/* scroll progress */
+var bar=$('.progress');
+function prog(){if(!bar)return;var h=document.documentElement.scrollHeight-innerHeight;bar.style.transform='scaleX('+(h>0?Math.min(1,scrollY/h):0)+')';}
+addEventListener('scroll',prog,{passive:true});prog();
+
+/* scrollspy: nav links (home) and table of contents (case studies) */
+function spy(links,attr){
+  if(!links.length||!('IntersectionObserver' in window))return;
+  var map={};links.forEach(function(a){var id=a.getAttribute('href').split('#')[1];if(id){var el=document.getElementById(id);if(el)map[id]={a:a,el:el};}});
+  var ids=Object.keys(map);if(!ids.length)return;
+  function update(){
+    var y=scrollY+140,cur=null;
+    ids.forEach(function(id){if(map[id].el.offsetTop<=y)cur=id;});
+    links.forEach(function(a){a.removeAttribute(attr==='aria-current'?'aria-current':'x');a.classList.remove('on');});
+    if(cur){var a=map[cur].a;if(attr==='aria-current')a.setAttribute('aria-current','true');else a.classList.add('on');}
+  }
+  addEventListener('scroll',update,{passive:true});update();
+}
+spy($$('.nav ul a[href*="#"]').filter(function(a){return !/^(https?:)?\/\//.test(a.getAttribute('href'))&&document.getElementById((a.getAttribute('href').split('#')[1]||'__'))}),'aria-current');
+spy($$('.toc a'),'on');
+
+/* project filter */
+var fchips=$$('.filters .chip');
+fchips.forEach(function(c){c.addEventListener('click',function(){
+  fchips.forEach(function(x){x.setAttribute('aria-pressed',x===c)});
+  var f=c.getAttribute('data-f'),n=0;
+  $$('.card[data-d]').forEach(function(k){var ok=f==='all'||k.getAttribute('data-d').split(' ').indexOf(f)>-1;k.hidden=!ok;if(ok)n++;});
+  var st=$('#filter-status');if(st)st.textContent=n+(n===1?' investigation shown':' investigations shown');
+});});
+
+/* methodology tabs */
+$$('.mw').forEach(function(w){
+  var mt=$$('.method [role="tab"]',w),mp=$('.method-panel',w),dj=$('.mdata',w);
+  if(!mt.length||!mp||!dj)return;
+  var M=JSON.parse(dj.textContent);
+  function sel(i,focus){mt.forEach(function(t,j){t.setAttribute('aria-selected',i===j);t.tabIndex=i===j?0:-1;});
+    mp.innerHTML='<h3></h3><p></p>';$('h3',mp).textContent=M[i].t;$('p',mp).textContent=M[i].d;if(focus)mt[i].focus();}
+  mt.forEach(function(t,i){t.addEventListener('click',function(){sel(i)});
+    t.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='ArrowDown'){e.preventDefault();sel((i+1)%mt.length,1)}else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();sel((i+mt.length-1)%mt.length,1)}});});
+  sel(0);
+});
+
+/* role switcher */
+var root=$('.rr'),ROLES=['electrical','forensics','soc'];
+function setRole(r,fromUser){
+  if(ROLES.indexOf(r)<0)return;
+  if(root)root.setAttribute('data-role',r);
+  $$('[data-role-btn]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-role-btn')===r);});
+  try{localStorage.setItem('pf-role',r);}catch(e){}
+  var pr=$('[data-pagerole]');
+  if(fromUser&&pr&&pr.getAttribute('data-pagerole')!==r){location.href='index.html';}
+}
+var init='forensics',pr0=$('[data-pagerole]');
+try{init=localStorage.getItem('pf-role')||init;}catch(e){}
+if(pr0)init=pr0.getAttribute('data-pagerole');
+setRole(init,false);
+$$('[data-role-btn]').forEach(function(b){b.addEventListener('click',function(){setRole(b.getAttribute('data-role-btn'),true);});});
+
+/* profile photo: show it only if the file exists */
+$$('.pimg').forEach(function(im){
+  function ok(){im.hidden=false;if(im.parentNode)im.parentNode.classList.add('has');}
+  im.addEventListener('load',function(){if(im.naturalWidth>0)ok();});
+  im.addEventListener('error',function(){im.hidden=true;});
+  if(im.complete&&im.naturalWidth>0)ok();
+});
+
+/* tool cards */
+$$('.skillcat').forEach(function(cat){
+  var d=$('.tooldesc',cat),tools=$$('.tool',cat);
+  tools.forEach(function(t){t.addEventListener('click',function(){
+    tools.forEach(function(x){x.setAttribute('aria-expanded',x===t)});
+    d.innerHTML='';var b=document.createElement('b');b.textContent=t.textContent+'. ';d.appendChild(b);d.appendChild(document.createTextNode(t.getAttribute('data-how')));
+  });});
+  if(tools[0])tools[0].click();
+});
+
+/* toast */
+var toast=$('.toast');var tt;
+function say(m){if(!toast)return;toast.textContent=m;toast.classList.add('show');clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove('show')},3800);}
+$$('[data-soon]').forEach(function(a){a.addEventListener('click',function(e){e.preventDefault();say(a.getAttribute('data-soon'));});});
+
+/* lightbox */
+var shots=$$('[data-lb]');
+if(shots.length){
+  var lb=document.createElement('div');lb.className='lb';lb.setAttribute('role','dialog');lb.setAttribute('aria-modal','true');lb.setAttribute('aria-label','Image viewer');
+  lb.innerHTML='<div class="lb-bar"><span class="cnt" aria-live="polite"></span><div class="lb-btns"><button type="button" data-a="prev" aria-label="Previous image">&larr;</button><button type="button" data-a="next" aria-label="Next image">&rarr;</button><button type="button" data-a="size" aria-label="Toggle actual size">1:1</button><button type="button" data-a="close" aria-label="Close viewer">Close</button></div></div><div class="lb-stage"><img alt=""></div><div class="lb-cap"></div>';
+  document.body.appendChild(lb);
+  var img=$('img',lb),cap=$('.lb-cap',lb),cnt=$('.cnt',lb),idx=0,last=null;
+  function show(i){idx=(i+shots.length)%shots.length;var s=shots[idx];img.classList.remove('nat');img.src=s.getAttribute('data-lb');img.alt=s.getAttribute('data-alt')||'';cap.textContent=s.getAttribute('data-cap')||'';cnt.textContent=(idx+1)+' / '+shots.length;}
+  function open(i){last=document.activeElement;show(i);lb.classList.add('open');document.body.style.overflow='hidden';$('[data-a=close]',lb).focus();}
+  function close(){lb.classList.remove('open');document.body.style.overflow='';if(last)last.focus();}
+  shots.forEach(function(s,i){s.addEventListener('click',function(){open(i)});});
+  lb.addEventListener('click',function(e){var a=e.target.getAttribute&&e.target.getAttribute('data-a');
+    if(a==='close'||e.target===$('.lb-stage',lb))close();else if(a==='prev')show(idx-1);else if(a==='next')show(idx+1);else if(a==='size')img.classList.toggle('nat');});
+  document.addEventListener('keydown',function(e){if(!lb.classList.contains('open'))return;
+    if(e.key==='Escape')close();else if(e.key==='ArrowLeft')show(idx-1);else if(e.key==='ArrowRight')show(idx+1);
+    else if(e.key==='Tab'){var f=$$('button',lb),fi=f.indexOf(document.activeElement);if(e.shiftKey&&fi<=0){e.preventDefault();f[f.length-1].focus()}else if(!e.shiftKey&&fi===f.length-1){e.preventDefault();f[0].focus()}}});
+}
+
+/* contact form: validation and confirmation state. No message is sent. */
+var form=$('#contact-form');
+if(form){
+  var ok=$('#form-ok');
+  function bad(id,on){var f=$('#'+id).closest('.field');f.classList.toggle('bad',on);$('#'+id).setAttribute('aria-invalid',on);}
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var n=$('#f-name').value.trim(),m=$('#f-mail').value.trim(),t=$('#f-msg').value.trim();
+    var vn=n.length>1,vm=/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(m),vt=t.length>=10;
+    bad('f-name',!vn);bad('f-mail',!vm);bad('f-msg',!vt);
+    if(!(vn&&vm&&vt)){var first=$('.field.bad input,.field.bad textarea',form);if(first)first.focus();return;}
+    form.hidden=true;ok.classList.add('show');ok.focus();
+  });
+  var again=$('#form-again');if(again)again.addEventListener('click',function(){form.reset();form.hidden=false;ok.classList.remove('show');$('#f-name').focus();});
+}
+})();
+
+document.querySelectorAll('.yr').forEach(function(e){e.textContent=new Date().getFullYear()});</script></body></html>

@@ -42,15 +42,40 @@ fchips.forEach(function(c){c.addEventListener('click',function(){
 });});
 
 /* methodology tabs */
-var mt=$$('.method [role="tab"]'),mp=$('#method-panel');
-if(mt.length&&mp){
-  var M=JSON.parse($('#method-data').textContent);
+$$('.mw').forEach(function(w){
+  var mt=$$('.method [role="tab"]',w),mp=$('.method-panel',w),dj=$('.mdata',w);
+  if(!mt.length||!mp||!dj)return;
+  var M=JSON.parse(dj.textContent);
   function sel(i,focus){mt.forEach(function(t,j){t.setAttribute('aria-selected',i===j);t.tabIndex=i===j?0:-1;});
     mp.innerHTML='<h3></h3><p></p>';$('h3',mp).textContent=M[i].t;$('p',mp).textContent=M[i].d;if(focus)mt[i].focus();}
   mt.forEach(function(t,i){t.addEventListener('click',function(){sel(i)});
     t.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='ArrowDown'){e.preventDefault();sel((i+1)%mt.length,1)}else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();sel((i+mt.length-1)%mt.length,1)}});});
   sel(0);
+});
+
+/* role switcher */
+var root=$('.rr'),ROLES=['electrical','forensics','soc'];
+function setRole(r,fromUser){
+  if(ROLES.indexOf(r)<0)return;
+  if(root)root.setAttribute('data-role',r);
+  $$('[data-role-btn]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-role-btn')===r);});
+  try{localStorage.setItem('pf-role',r);}catch(e){}
+  var pr=$('[data-pagerole]');
+  if(fromUser&&pr&&pr.getAttribute('data-pagerole')!==r){location.href='index.html';}
 }
+var init='forensics',pr0=$('[data-pagerole]');
+try{init=localStorage.getItem('pf-role')||init;}catch(e){}
+if(pr0)init=pr0.getAttribute('data-pagerole');
+setRole(init,false);
+$$('[data-role-btn]').forEach(function(b){b.addEventListener('click',function(){setRole(b.getAttribute('data-role-btn'),true);});});
+
+/* profile photo: show it only if the file exists */
+$$('.pimg').forEach(function(im){
+  function ok(){im.hidden=false;if(im.parentNode)im.parentNode.classList.add('has');}
+  im.addEventListener('load',function(){if(im.naturalWidth>0)ok();});
+  im.addEventListener('error',function(){im.hidden=true;});
+  if(im.complete&&im.naturalWidth>0)ok();
+});
 
 /* tool cards */
 $$('.skillcat').forEach(function(cat){

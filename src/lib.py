@@ -15,6 +15,13 @@ FONTS = ('<link rel="preconnect" href="https://fonts.googleapis.com">'
 NAME = '<span class="ph">[YOUR FULL PROFESSIONAL NAME]</span>'
 DOMAIN = "https://YOUR-DOMAIN.example"
 
+CVS = {"electrical": ("assets/downloads/CV-electrical-engineering.pdf", "electrical"),
+       "forensics": ("assets/downloads/CV-digital-forensics.pdf", "forensics"),
+       "soc": ("assets/downloads/CV-soc-analyst.pdf", "soc")}
+def cvlinks(cls, label="Download CV", icon=True):
+    ic = DL if icon else ""
+    return "".join(f'<a class="{cls}" data-for="{r}" href="{h}" target="_blank" rel="noopener">{ic}{label}</a>' for r, (h, _) in CVS.items())
+
 ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 12h16M14 6l6 6-6 6"/></svg>'
 DL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>'
 
@@ -42,38 +49,53 @@ LEGEND = ('<div class="legend" role="note" aria-label="Evidence status key">'
 def esc(s):
     return html.escape(s, quote=True)
 
+SWITCH = [("electrical", "Electrical Engineering", "Electrical"), ("forensics", "Digital Forensics", "Forensics"), ("soc", "SOC Analyst", "SOC")]
+def switcher(cls):
+    b = "".join(f'<button type="button" data-role-btn="{r}" aria-pressed="{"true" if r == "forensics" else "false"}"><span class="l">{full}</span><span class="s">{short}</span></button>' for r, full, short in SWITCH)
+    return f'<div class="{cls}" role="group" aria-label="Choose a profile view">{b}</div>'
+
 def nav(prefix, current=None):
     p = prefix
-    items = [("Home", p + "#top" if p else "#top"), ("About", p + "#about"), ("Investigations", p + "#investigations"),
+    lab = lambda a, b, c: (f'<span data-for="forensics">{a}</span><span data-for="soc">{b}</span><span data-for="electrical">{c}</span>')
+    items = [("Home", p + "#top" if p else "#top"), ("About", p + "#about"), (lab("Investigations", "Projects", "Experience"), p + "#investigations"),
              ("Skills", p + "#skills"), ("Contact", p + "#contact")]
     li = "".join(f'<li><a href="{h}">{t}</a></li>' for t, h in items)
-    li += f'<li class="cv-m"><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li>'
-    home = (p or "") + "#top" if p else "#top"
+    li += f'<li class="rs-m">{switcher("rs rs-menu")}</li>'
+    li += f'<li class="cv-m">{cvlinks("cvl")}</li>'
     return f'''<a class="skip" href="#main">Skip to content</a><div class="progress" aria-hidden="true"></div>
 <header class="site"><div class="wrap nav">
-<a class="brand" href="{p + '#top' if p else '#top'}" aria-label="Digital Forensics and Cyber Investigations, home">{MONO}<span><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span></a>
+<a class="brand" href="{p + '#top' if p else '#top'}" aria-label="Home">{MONO}<span data-for="forensics"><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span><span data-for="soc"><b>SOC Analyst</b><i>Threat &amp; vulnerability</i></span><span data-for="electrical"><b>Electrical Engineering</b><i>High-voltage systems</i></span></a>
 <ul id="navlist">{li}</ul>
-<a class="btn sm cv" href="assets/downloads/CV.pdf" target="_blank" rel="noopener">{DL}Download CV</a>
+{switcher("rs rs-head")}
+{cvlinks("btn sm cv")}
 <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
 </div></header>'''
 
-PROJECTS = [
+PROJECTS_F = [
     ("alexa-iot-forensics.html", "Amazon Alexa IoT Forensics"),
     ("raid-windows-forensics.html", "RAID Reconstruction & Windows Forensics"),
     ("snapchat-mobile-forensics.html", "Snapchat Mobile Forensics"),
     ("uc-browser-forensics.html", "UC Browser Forensics"),
 ]
+PROJECTS_S = [
+    ("darkside-threat-profile.html", "DarkSide Ransomware Threat Profile"),
+    ("nginx-ansible-remediation.html", "nginx Remediation with Ansible"),
+    ("invoice-fraud-phishing-analysis.html", "Invoice Fraud Phishing Analysis"),
+]
+GROUPS = {"forensics": PROJECTS_F, "soc": PROJECTS_S}
+PROJECTS = PROJECTS_F
 
 def footer(prefix):
     p = prefix
-    pl = "".join(f'<li><a href="{h}">{t}</a></li>' for h, t in PROJECTS)
+    pl = "".join(f'<ul data-for="{r}">' + "".join(f'<li><a href="{h}">{t}</a></li>' for h, t in g) + '</ul>' for r, g in GROUPS.items())
+    pl += '<ul data-for="electrical"><li><a href="' + p + '#investigations">Transmission Company of Nigeria</a></li><li><a href="' + p + '#investigations">Vitek Engineering Company</a></li></ul>'
     return f'''<footer class="site"><div class="wrap">
 <div class="foot">
-<div class="about-f"><p class="big">{NAME}</p><p style="color:var(--fg2);margin:8px 0 0">Digital Forensics &amp; Cyber Investigations.</p>
-<p style="color:var(--fg2);font-size:14px;margin-top:18px">Academic forensic case studies. Scenarios are simulations built for research and assessment, not live prosecutions.</p></div>
+<div class="about-f"><p class="big">{NAME}</p><p style="color:var(--fg2);margin:8px 0 0">Electrical engineering · Digital forensics · SOC analysis</p>
+<p style="color:var(--fg2);font-size:14px;margin-top:18px" data-for="forensics soc">Academic and training case studies. Scenarios are simulations built for research and assessment, not live engagements.</p></div>
 <div class="col"><h4>Navigate</h4><ul><li><a href="{p}#about">About</a></li><li><a href="{p}#investigations">Investigations</a></li><li><a href="{p}#skills">Skills</a></li><li><a href="{p}#contact">Contact</a></li></ul></div>
-<div class="col"><h4>Investigations</h4><ul>{pl}</ul></div>
-<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul></div>
+<div class="col"><h4><span data-for="forensics soc">Investigations</span><span data-for="electrical">Experience</span></h4>{pl}</div>
+<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li>{cvlinks("cvl")}</li></ul></div>
 </div>
 <div class="foot-bot"><span>&copy; <span class="yr">2026</span> {NAME}</span><em>Investigate. Analyse. Understand.</em></div>
 </div></footer><div class="toast" role="status" aria-live="polite"></div>'''
@@ -92,12 +114,12 @@ def full_page(title, desc, page, body, prefix="index.html"):
     return (f'<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
             f'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">\n'
             f'{head_meta(title, desc, page)}\n{FONTS}\n<style>{CSS}</style></head><body>\n'
-            f'{nav(prefix)}<main id="main">{body}</main>{footer(prefix)}\n<script>{JS}\n{YEAR_JS}</script></body></html>')
+            f'<div class="rr" data-role="forensics">{nav(prefix)}<main id="main">{body}</main>{footer(prefix)}</div>\n<script>{JS}\n{YEAR_JS}</script></body></html>')
 
 def fragment_page(title, desc, page, body):
     """The artifact host wraps this in its own skeleton, so no html/head/body tags."""
     return (f'{head_meta(title, desc, page)}\n<meta name="claude:viewport-fit-sides" content="cover">\n{FONTS}\n'
-            f'<style>{CSS}</style>\n{nav("")}<main id="main">{body}</main>{footer("")}\n<script>{JS}\n{YEAR_JS}</script>')
+            f'<style>{CSS}</style>\n<div class="rr" data-role="forensics">{nav("")}<main id="main">{body}</main>{footer("")}</div>\n<script>{JS}\n{YEAR_JS}</script>')
 
 # ---------- case-study helpers ----------
 def shot(img, label, cap, alt, w=None):
@@ -141,14 +163,14 @@ def table(head, rows, cls=None):
         out += f"<tr>{tds}</tr>"
     return f'<div class="tbl"><table><thead><tr>{th}</tr></thead><tbody>{out}</tbody></table></div>'
 
-def case_page(slug, title, short, desc, eyebrow, sub, badges, hero_html, sections, idx):
+def case_page(slug, title, short, desc, eyebrow, sub, badges, hero_html, sections, idx, role="forensics"):
     toc = "".join(f'<li><a href="#{s[0]}"><span>{i + 1:02d}</span>{s[1]}</a></li>' for i, s in enumerate(sections))
     secs = ""
     for i, (sid, stitle, shtml) in enumerate(sections):
         secs += (f'<section class="cs-sec" id="{sid}" aria-labelledby="{sid}-h"><header><span class="label t">{i + 1:02d}</span>'
                  f'<h2 id="{sid}-h">{stitle}</h2></header>{shtml}</section>')
-    prev = PROJECTS[(idx - 1) % 4]; nxt = PROJECTS[(idx + 1) % 4]
-    body = f'''<div class="cs-hero grid-fade"><div class="wrap">
+    G = GROUPS[role]; prev = G[(idx - 1) % len(G)]; nxt = G[(idx + 1) % len(G)]
+    body = f'''<div data-pagerole="{role}"></div><div class="cs-hero grid-fade"><div class="wrap">
 <div class="crumbs label"><a href="index.html#investigations">Investigations</a><span>/</span><span class="a">{eyebrow}</span></div>
 <div class="cs-hero-grid"><div><h1>{title}</h1><p class="sub">{sub}</p><div class="badge-row">{badges}</div></div><div>{hero_html}</div></div>
 </div></div>

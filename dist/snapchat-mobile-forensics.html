@@ -381,16 +381,71 @@ td.y{color:var(--teal)}td.n{color:var(--fg2);opacity:.75}td.p{color:var(--amber)
 .panel,.shot,.tbl,.kv,.stats{min-width:0;max-width:100%}
 @media(max-width:520px){.scene .tag{font-size:9.5px;padding:3px 6px}.scene .tag:nth-of-type(3){display:none}.scene .tag:nth-of-type(4){left:11%;right:auto;bottom:20%}}
 
+/* ---- role switching ---- */
+.rr[data-role="forensics"] [data-for]:not([data-for~="forensics"]),
+.rr[data-role="soc"] [data-for]:not([data-for~="soc"]),
+.rr[data-role="electrical"] [data-for]:not([data-for~="electrical"]){display:none!important}
+.rs{display:inline-flex;border:1px solid var(--line);background:var(--bg2)}
+.rs button{min-height:40px;padding:0 14px;background:none;border:0;border-right:1px solid var(--line);color:var(--fg2);font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.rs button:last-child{border-right:0}
+.rs button:hover{color:var(--fg)}
+.rs button[aria-pressed="true"]{background:var(--teal);color:var(--ink)}
+.rs .s{display:none}
+.rs-head{margin-left:auto}
+.rs-head button{min-height:34px;padding:0 10px;font-size:11px}
+.rs-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:28px}
+.rs-m{display:none}
+@media(max-width:1180px){.rs-head{display:none}}
+@media(max-width:900px){.nav ul .rs-m{display:block;padding:14px 0}.rs-menu{display:flex}.rs-menu button{flex:1;padding:0 6px}}
+@media(max-width:520px){.rs-hero{display:flex;width:100%}.rs-hero button{flex:1;padding:0 4px;font-size:11px}.rs-hero .l{display:none}.rs-hero .s{display:inline}.rs-menu .l{display:none}.rs-menu .s{display:inline}}
+.nav .cvl{display:inline-flex;align-items:center;gap:8px;color:var(--teal);padding:16px 0}
+.nav .cvl svg,.foot .cvl svg{width:15px;height:15px}
+.foot .cvl{color:inherit}
+.brand span[data-for]{display:block}
+/* hero portrait */
+.pscene{position:relative;aspect-ratio:4/5;border:1px solid var(--line);background:var(--bg2);overflow:hidden;max-width:520px;margin-inline:auto}
+.pframe{position:absolute;inset:8%;border:1px dashed var(--fg2);background:linear-gradient(180deg,#0d1730,#0a1224);display:grid;place-items:center;overflow:hidden}
+.pframe.has{border:1px solid var(--amber)}
+.pmsg{display:grid;justify-items:center;gap:6px;color:var(--fg2);text-align:center;padding:16px}
+.pmsg .sil{width:46%;max-width:150px;opacity:.7}
+.pmsg span{font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase}
+.pmsg small{font:400 11px/1.4 var(--f-mono);color:var(--fg2);opacity:.8}
+.pframe.has .pmsg{display:none}
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pimg[hidden]{display:none}
+.cm{position:absolute;width:18px;height:18px;border:2px solid var(--amber)}
+.cm.a{left:5%;top:5%;border-right:0;border-bottom:0}.cm.b{right:5%;top:5%;border-left:0;border-bottom:0}.cm.c{left:5%;bottom:5%;border-right:0;border-top:0}.cm.d{right:5%;bottom:5%;border-left:0;border-top:0}
+.pscene .tag{z-index:2}
+.portrait .frame{position:relative;overflow:hidden}
+.portrait .frame.has{border-style:solid}
+.portrait .frame.has>span{display:none}
+.hero-roles{display:block}
+.hero-roles h1{font-size:clamp(44px,7.6vw,104px);font-weight:700;letter-spacing:-.035em;text-transform:uppercase;line-height:.95}
+.hero-roles h1 em{font-style:normal;color:var(--teal)}
+.hero-roles .lede{font-size:clamp(17px,1.5vw,20px);color:var(--fg2);margin:28px 0 36px;max-width:56ch}
+.hero-roles [data-for]>*{animation:rise .5s cubic-bezier(.2,.7,.2,1) backwards}
+/* experience cards */
+.card.ec{grid-column:span 6;cursor:default}
+.card.ec:hover{transform:none;border-color:var(--line)}
+.card.ec .thumb{aspect-ratio:16/8}
+.ecl{margin:0;padding-left:18px;color:var(--fg2);font-size:15px}.ecl li{margin:6px 0}
+.card .when{font:500 12px/1.5 var(--f-mono);letter-spacing:.06em;color:var(--fg2)!important}
+@media(max-width:960px){.card.ec{grid-column:1/-1}}
+pre.code{background:var(--ink);border:1px solid var(--line);padding:16px;overflow-x:auto;font:400 12.5px/1.55 var(--f-mono);color:var(--fg);margin:0}
+.intro>.pillars{grid-column:1/-1}
+.btn{white-space:nowrap}
+
 header.site{top:env(safe-area-inset-top,0px)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:70;background:var(--bg)}
 </style></head><body>
-<a class="skip" href="#main">Skip to content</a><div class="progress" aria-hidden="true"></div>
+<div class="rr" data-role="forensics"><a class="skip" href="#main">Skip to content</a><div class="progress" aria-hidden="true"></div>
 <header class="site"><div class="wrap nav">
-<a class="brand" href="index.html#top" aria-label="Digital Forensics and Cyber Investigations, home"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28" stroke="#F0A45D" stroke-width="2"/><text x="20" y="25.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="500" font-size="14" fill="#27C6B0">DF</text></svg><span><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span></a>
-<ul id="navlist"><li><a href="index.html#top">Home</a></li><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations">Investigations</a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li><li class="cv-m"><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul>
-<a class="btn sm cv" href="assets/downloads/CV.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a>
+<a class="brand" href="index.html#top" aria-label="Home"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" aria-hidden="true"><path d="M2 12V2h10M28 2h10v10M38 28v10H28M12 38H2V28" stroke="#F0A45D" stroke-width="2"/><text x="20" y="25.5" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-weight="500" font-size="14" fill="#27C6B0">DF</text></svg><span data-for="forensics"><b>Digital Forensics</b><i>&amp; Cyber Investigations</i></span><span data-for="soc"><b>SOC Analyst</b><i>Threat &amp; vulnerability</i></span><span data-for="electrical"><b>Electrical Engineering</b><i>High-voltage systems</i></span></a>
+<ul id="navlist"><li><a href="index.html#top">Home</a></li><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations"><span data-for="forensics">Investigations</span><span data-for="soc">Projects</span><span data-for="electrical">Experience</span></a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li><li class="rs-m"><div class="rs rs-menu" role="group" aria-label="Choose a profile view"><button type="button" data-role-btn="electrical" aria-pressed="false"><span class="l">Electrical Engineering</span><span class="s">Electrical</span></button><button type="button" data-role-btn="forensics" aria-pressed="true"><span class="l">Digital Forensics</span><span class="s">Forensics</span></button><button type="button" data-role-btn="soc" aria-pressed="false"><span class="l">SOC Analyst</span><span class="s">SOC</span></button></div></li><li class="cv-m"><a class="cvl" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a></li></ul>
+<div class="rs rs-head" role="group" aria-label="Choose a profile view"><button type="button" data-role-btn="electrical" aria-pressed="false"><span class="l">Electrical Engineering</span><span class="s">Electrical</span></button><button type="button" data-role-btn="forensics" aria-pressed="true"><span class="l">Digital Forensics</span><span class="s">Forensics</span></button><button type="button" data-role-btn="soc" aria-pressed="false"><span class="l">SOC Analyst</span><span class="s">SOC</span></button></div>
+<a class="btn sm cv" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="btn sm cv" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="btn sm cv" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a>
 <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
-</div></header><main id="main"><div class="cs-hero grid-fade"><div class="wrap">
+</div></header><main id="main"><div data-pagerole="forensics"></div><div class="cs-hero grid-fade"><div class="wrap">
 <div class="crumbs label"><a href="index.html#investigations">Investigations</a><span>/</span><span class="a">SNP-03</span></div>
 <div class="cs-hero-grid"><div><h1>Snapchat mobile application forensics</h1><p class="sub">A comparative investigation of Snapchat artefacts across Android and iOS environments.</p><div class="badge-row"><span class="badge">Academic forensic case study</span><span class="badge">Mobile</span></div></div><div><figure class="panel" style="margin-inline:0"><div class="ph-bar"><span>Platforms compared</span><b>Illustration</b></div><div class="pb"><svg class="" viewBox="0 0 480 300" role="img" aria-label="Illustration: Android and iOS handsets compared" xmlns="http://www.w3.org/2000/svg"><line x1="0" y1="0" x2="0" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="40" y1="0" x2="40" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="80" y1="0" x2="80" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="120" y1="0" x2="120" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="160" y1="0" x2="160" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="200" y1="0" x2="200" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="240" y1="0" x2="240" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="280" y1="0" x2="280" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="320" y1="0" x2="320" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="360" y1="0" x2="360" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="400" y1="0" x2="400" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="440" y1="0" x2="440" y2="300" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="0" x2="480" y2="0" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="40" x2="480" y2="40" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="80" x2="480" y2="80" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="120" x2="480" y2="120" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="160" x2="480" y2="160" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="200" x2="480" y2="200" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="240" x2="480" y2="240" stroke="#1D2B40" stroke-width="1" /><line x1="0" y1="280" x2="480" y2="280" stroke="#1D2B40" stroke-width="1" /><rect x="90" y="40" width="120" height="210" stroke="#27C6B0" fill="#172238" stroke-width="1.5" rx="14"/><rect x="100" y="56" width="100" height="160" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="150" y="236" font-family="IBM Plex Mono,monospace" font-size="12" fill="#27C6B0" text-anchor="middle" font-weight="500" letter-spacing="1.5">ANDROID</text><rect x="110" y="70" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="150" y="91" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">arroyo.db</text><rect x="110" y="114" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="150" y="135" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">contacts</text><rect x="110" y="158" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="150" y="179" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">media</text><rect x="270" y="40" width="120" height="210" stroke="#F0A45D" fill="#172238" stroke-width="1.5" rx="14"/><rect x="280" y="56" width="100" height="160" stroke="#26344B" fill="#0B1020" stroke-width="1" /><text x="330" y="236" font-family="IBM Plex Mono,monospace" font-size="12" fill="#F0A45D" text-anchor="middle" font-weight="500" letter-spacing="1.5">iOS</text><rect x="290" y="70" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="330" y="91" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">arroyo.db</text><rect x="290" y="114" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="330" y="135" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">contacts</text><rect x="290" y="158" width="80" height="32" stroke="#26344B" fill="#172238" stroke-width="1" /><text x="330" y="179" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="400" letter-spacing="0">media</text><line x1="222" y1="145" x2="258" y2="145" stroke="#A5AFBF" stroke-width="1" stroke-dasharray="3 3"/><text x="240" y="283" font-family="IBM Plex Mono,monospace" font-size="10" fill="#A5AFBF" text-anchor="middle" font-weight="500" letter-spacing="1.5">ILLUSTRATION · NOT A DEVICE SCREENSHOT</text></svg></div><div class="cap reconstruction">Explanatory illustration. Not a device screenshot.</div></figure></div></div>
 </div></div>
@@ -398,14 +453,14 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 <nav class="next" aria-label="Case study navigation"><a href="raid-windows-forensics.html"><span class="label">&larr; Previous investigation</span><b>RAID Reconstruction & Windows Forensics</b></a><a href="uc-browser-forensics.html"><span class="label">Next investigation &rarr;</span><b>UC Browser Forensics</b></a></nav>
 </div></div></main><footer class="site"><div class="wrap">
 <div class="foot">
-<div class="about-f"><p class="big"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p><p style="color:var(--fg2);margin:8px 0 0">Digital Forensics &amp; Cyber Investigations.</p>
-<p style="color:var(--fg2);font-size:14px;margin-top:18px">Academic forensic case studies. Scenarios are simulations built for research and assessment, not live prosecutions.</p></div>
+<div class="about-f"><p class="big"><span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></p><p style="color:var(--fg2);margin:8px 0 0">Electrical engineering · Digital forensics · SOC analysis</p>
+<p style="color:var(--fg2);font-size:14px;margin-top:18px" data-for="forensics soc">Academic and training case studies. Scenarios are simulations built for research and assessment, not live engagements.</p></div>
 <div class="col"><h4>Navigate</h4><ul><li><a href="index.html#about">About</a></li><li><a href="index.html#investigations">Investigations</a></li><li><a href="index.html#skills">Skills</a></li><li><a href="index.html#contact">Contact</a></li></ul></div>
-<div class="col"><h4>Investigations</h4><ul><li><a href="alexa-iot-forensics.html">Amazon Alexa IoT Forensics</a></li><li><a href="raid-windows-forensics.html">RAID Reconstruction & Windows Forensics</a></li><li><a href="snapchat-mobile-forensics.html">Snapchat Mobile Forensics</a></li><li><a href="uc-browser-forensics.html">UC Browser Forensics</a></li></ul></div>
-<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a href="assets/downloads/CV.pdf" target="_blank" rel="noopener">Download CV</a></li></ul></div>
+<div class="col"><h4><span data-for="forensics soc">Investigations</span><span data-for="electrical">Experience</span></h4><ul data-for="forensics"><li><a href="alexa-iot-forensics.html">Amazon Alexa IoT Forensics</a></li><li><a href="raid-windows-forensics.html">RAID Reconstruction & Windows Forensics</a></li><li><a href="snapchat-mobile-forensics.html">Snapchat Mobile Forensics</a></li><li><a href="uc-browser-forensics.html">UC Browser Forensics</a></li></ul><ul data-for="soc"><li><a href="darkside-threat-profile.html">DarkSide Ransomware Threat Profile</a></li><li><a href="nginx-ansible-remediation.html">nginx Remediation with Ansible</a></li><li><a href="invoice-fraud-phishing-analysis.html">Invoice Fraud Phishing Analysis</a></li></ul><ul data-for="electrical"><li><a href="index.html#investigations">Transmission Company of Nigeria</a></li><li><a href="index.html#investigations">Vitek Engineering Company</a></li></ul></div>
+<div class="col"><h4>Contact</h4><ul><li><span class="ph">[PROFESSIONAL EMAIL]</span></li><li><a href="#" data-soon="LinkedIn link not set yet. Replace [LINKEDIN URL] in the source.">LinkedIn</a></li><li><a href="#" data-soon="GitHub link not set yet. Replace [GITHUB URL] in the source.">GitHub</a></li><li><a class="cvl" data-for="electrical" href="assets/downloads/CV-electrical-engineering.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="forensics" href="assets/downloads/CV-digital-forensics.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a><a class="cvl" data-for="soc" href="assets/downloads/CV-soc-analyst.pdf" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>Download CV</a></li></ul></div>
 </div>
 <div class="foot-bot"><span>&copy; <span class="yr">2026</span> <span class="ph">[YOUR FULL PROFESSIONAL NAME]</span></span><em>Investigate. Analyse. Understand.</em></div>
-</div></footer><div class="toast" role="status" aria-live="polite"></div>
+</div></footer><div class="toast" role="status" aria-live="polite"></div></div>
 <script>(function(){
 'use strict';
 var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
@@ -450,15 +505,40 @@ fchips.forEach(function(c){c.addEventListener('click',function(){
 });});
 
 /* methodology tabs */
-var mt=$$('.method [role="tab"]'),mp=$('#method-panel');
-if(mt.length&&mp){
-  var M=JSON.parse($('#method-data').textContent);
+$$('.mw').forEach(function(w){
+  var mt=$$('.method [role="tab"]',w),mp=$('.method-panel',w),dj=$('.mdata',w);
+  if(!mt.length||!mp||!dj)return;
+  var M=JSON.parse(dj.textContent);
   function sel(i,focus){mt.forEach(function(t,j){t.setAttribute('aria-selected',i===j);t.tabIndex=i===j?0:-1;});
     mp.innerHTML='<h3></h3><p></p>';$('h3',mp).textContent=M[i].t;$('p',mp).textContent=M[i].d;if(focus)mt[i].focus();}
   mt.forEach(function(t,i){t.addEventListener('click',function(){sel(i)});
     t.addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowRight'||k==='ArrowDown'){e.preventDefault();sel((i+1)%mt.length,1)}else if(k==='ArrowLeft'||k==='ArrowUp'){e.preventDefault();sel((i+mt.length-1)%mt.length,1)}});});
   sel(0);
+});
+
+/* role switcher */
+var root=$('.rr'),ROLES=['electrical','forensics','soc'];
+function setRole(r,fromUser){
+  if(ROLES.indexOf(r)<0)return;
+  if(root)root.setAttribute('data-role',r);
+  $$('[data-role-btn]').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-role-btn')===r);});
+  try{localStorage.setItem('pf-role',r);}catch(e){}
+  var pr=$('[data-pagerole]');
+  if(fromUser&&pr&&pr.getAttribute('data-pagerole')!==r){location.href='index.html';}
 }
+var init='forensics',pr0=$('[data-pagerole]');
+try{init=localStorage.getItem('pf-role')||init;}catch(e){}
+if(pr0)init=pr0.getAttribute('data-pagerole');
+setRole(init,false);
+$$('[data-role-btn]').forEach(function(b){b.addEventListener('click',function(){setRole(b.getAttribute('data-role-btn'),true);});});
+
+/* profile photo: show it only if the file exists */
+$$('.pimg').forEach(function(im){
+  function ok(){im.hidden=false;if(im.parentNode)im.parentNode.classList.add('has');}
+  im.addEventListener('load',function(){if(im.naturalWidth>0)ok();});
+  im.addEventListener('error',function(){im.hidden=true;});
+  if(im.complete&&im.naturalWidth>0)ok();
+});
 
 /* tool cards */
 $$('.skillcat').forEach(function(cat){

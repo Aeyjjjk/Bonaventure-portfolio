@@ -258,4 +258,170 @@ def ucb():
         "Academic case study of UC Browser history, cookies, cache and private-browsing traces in a controlled Windows virtual machine.",
         "UCB-04", "Investigating browser activity, private browsing traces and residual digital artefacts in a controlled Windows environment.", ACAD + '<span class="badge">Browser</span>', hero, S, 3)
 
-ALL = [alexa, raid, snap, ucb]
+
+# =====================================================================
+#  SOC ANALYST PROJECTS
+# =====================================================================
+TRN = '<span class="badge">Training exercise</span>'
+def _hero_art(svg, cap_l, cap_r):
+    return f'<figure class="hero-shot"><div class="dscroll" style="background:#0a1224;padding:6px">{svg}</div><figcaption><span>{cap_l}</span><span>{cap_r}</span></figcaption></figure>'
+
+def darkside():
+    hero = _hero_art(svgs.dark_card(), "Illustration", "Not a sample view")
+    S = []
+    S.append(("intro", "Project introduction",
+      '<p>A threat profile of one ransomware sample, written as a cyber threat intelligence exercise for a simulated client, NorthByte Cybersecurity Ltd. The sample is a 32-bit Windows DLL that 54 of 62 antivirus engines on VirusTotal label as DarkSide.</p>'
+      '<p>The profile answers three questions a SOC needs answered: what is this file, what does it do, and what should we do about it. It ends with indicators, ATT&amp;CK mappings, a detection rule and six prioritised actions.</p>'
+      '<div class="note-box"><b>Training exercise, draft status</b>This is a draft (v1.0, for peer review) written on public-source intelligence. The original carries a TLP:AMBER marking, and this page is a summary. Several items in the original are still marked to complete, and they are listed under Limitations rather than hidden.</div>'))
+    S.append(("overview", "Report overview",
+      kv([("Subject", "DarkSide ransomware, 32-bit Windows DLL"), ("Analyst", "The portfolio owner"), ("Report date", "20 November 2026"), ("Status", "v1.0, draft for peer review"),
+          ("Sample identity", "SHA-256 156335b9…0090673 (public hash); 55,810 bytes; imphash 6c8408bb…e68763"),
+          ("Sources", "VirusTotal GUI and API v3 metadata, CISA/FBI advisory AA21-131A, and published reports from Trend Micro, Mandiant, Sophos, Qualys and others")])
+      + stats([("54/62", "engines detect the file", "am"), ("5", "independent YARA rules match", "te"), ("15", "ATT&CK technique rows mapped", ""), ("6", "prioritised recommendations", "")])))
+    S.append(("judgement", "Key judgements",
+      LEGEND.replace('verified directly in the investigation output', 'directly supported by sample data') +
+      findings([
+        ("conf", "<strong>The sample is DarkSide ransomware (High confidence).</strong> 54 of 62 detections, vendor labels that agree on the family, five independent YARA rules, and sandbox runs that show ransom notes and renamed files."),
+        ("int", "<strong>The brand is defunct but the model continues (Moderate confidence).</strong> The sample was compiled on 5 April 2021 and first seen on 1 May 2021. DarkSide closed in May 2021, and its operators are linked to BlackMatter and then ALPHV/BlackCat."),
+        ("int", "<strong>Overall confidence is Moderate.</strong> Detection and sandbox data are strong. Static analysis is limited to VirusTotal metadata, and some checks are still outstanding.")])))
+    S.append(("history", "History and lineage",
+      table(["Date", "Event"], [["August 2020", "DarkSide first spotted"], ["November 2020", "Ransomware-as-a-service model launched"], ["March 2021", "DarkSide v2.0 released"], ["5 April 2021", "Compile timestamp of the assigned sample"],
+        ["7 May 2021", "Colonial Pipeline attack; FBI later attributes it to DarkSide"], ["May 2021", "DarkSide announces it is shutting down"], ["31 July 2021", "BlackMatter appears, assessed as DarkSide returning"],
+        ["November 2021", "BlackMatter shuts down"], ["April 2022", "FBI advisory links BlackCat to DarkSide and BlackMatter"]])
+      + '<p style="margin-top:14px">DarkSide is sold as a service: operators build the ransomware and affiliates carry out the intrusions, so attribution depends on the affiliate. The operator group is tracked as GOLD WATERFALL by Sophos, and Mandiant tracks affiliate clusters UNC2465, UNC2628 and UNC2659. A claim that FIN7 operated DarkSide could not be corroborated, so it is not reported as attribution.</p>'))
+    S.append(("lifecycle", "Attack lifecycle",
+      panel("Attack lifecycle", "Illustration", '<div class="dscroll">' + svgs.dark_lifecycle() + '</div>', "Stages drawn from the report. Initial access varies by affiliate and is not visible in the sample itself.", True)
+      + '<p>Reported initial access routes include spearphishing links, password spraying against VPN, and exploitation of exposed services. Operators have used PowerShell, Certutil and Bitsadmin to fetch the ransomware and PsExec and RDP to spread it. Stolen data went to Tor leak sites and file-sharing services.</p>'))
+    S.append(("static", "Static analysis",
+      '<p>The file is a small DLL with two non-standard sections and two sections whose entropy points to encrypted content. It statically imports a single function, so the rest of its behaviour is hidden until run time.</p>'
+      + table(["Section", "Entropy", "Observation"], [[".text", "6.09", "Main code, below 7.0"], [".text1", "5.13", "Non-standard name; probably holds the entry point"], [".rdata", "3.22", "Very small read-only data"], [".data", ("7.71", "p"), "Likely packed or encrypted data"], [".ndata", ("7.94", "p"), "Non-standard name, highest entropy"]])
+      + findings([("rec", "<strong>One static import.</strong> DisableThreadLibraryCalls only. Sandbox data shows the other APIs resolved at run time."),
+                  ("int", "<strong>Packing is inferred, not named.</strong> VirusTotal did not name a packer. The evidence is indirect: entropy, section names, the single import and a ClamAV label of Packed."),
+                  ("lim", "<strong>No signature data.</strong> VirusTotal returned none, so the file is treated as unsigned with Moderate confidence.")])))
+    S.append(("behaviour", "Behaviour in sandbox runs",
+      findings([("conf", "<strong>Execution via rundll32.exe</strong> with the DLL as the target."), ("rec", "<strong>Ransom note and renamed files.</strong> A README.[8-hex ID].TXT note and files renamed with an 8-hex suffix; the ID changes per run."),
+                ("rec", "<strong>Environment checks.</strong> Disk, debugger, OS version and processor count were queried before encryption."), ("pot", "<strong>Long sleeps</strong> were tagged, which may be time-based evasion."),
+                ("lim", "<strong>No persistence mechanism seen.</strong> Registry writes were ordinary WMI entries, not Run keys."),
+                ("lim", "<strong>Mutex and registry names are not used for detection</strong>, because they matched Windows or sandbox noise.")])))
+    S.append(("iocs", "Indicators of compromise",
+      table(["Type", "Indicator (defanged)", "Confidence"], [["SHA-256", "156335b95ba216456f1ac0894b7b9d6ad95404ac7df447940f21646ca0090673", "High"], ["MD5", "f587adbd83ff3f4d2985453cd45c7ab1", "High"], ["Imphash", "6c8408bb5d7d5a5b75b9314f94e68763", ("Moderate", "p")],
+        ["Domain", "baroquetees[.]com", ("Moderate", "p")], ["Domain", "rumahsia[.]com", ("Moderate", "p")], ["Domain", "survey-smiles[.]com", ("Low", "n")], ["File name", "README.[8-hex ID].TXT", "High"]])
+      + '<p style="margin-top:14px">The two C2 domains come from Emerging Threats rules on TLS server names. The third was contacted in a sandbox run but is not corroborated. Fifteen sandbox IP addresses were not assessed, because many look like shared cloud infrastructure and need enrichment before any blocking.</p>'))
+    S.append(("attack", "MITRE ATT&amp;CK mapping",
+      table(["Tactic", "Technique", "Evidence"], [["Execution", "T1218.011 Rundll32", "Sandbox command lines; Sigma rule matched"], ["Execution", "T1047 WMI", "calls-wmi tag; wmiprvse.exe started (Moderate)"], ["Defense evasion", "T1027 / T1027.007", "Entropy and encoding signatures; dynamic API resolution"],
+        ["Defense evasion", "T1497.001 / .003, T1622", "System checks, long sleeps, debugger detection"], ["Discovery", "T1082", "OS version, processors, machine GUID"], ["Impact", "T1486", "Renamed files, ransom note, 54 ransomware labels"],
+        ["Impact", "T1490", "Reported, not seen in sandbox data"], ["Initial access, lateral movement, exfiltration", "T1566.002, T1078, T1110.003, T1190, T1021.001, T1567.002", "Reported for DarkSide affiliates, not observable in this sample"]])
+      + '<p style="margin-top:14px">Rows from published reports are kept apart from rows evidenced by this sample, so the mapping does not claim more than the sample shows.</p>'))
+    S.append(("detection", "Detection",
+      '<p>No verified strings were available, because the sample was not downloaded and the metadata gives no readable strings from a packed file. Guessing strings from other DarkSide samples would risk false positives, so the rule matches structure instead.</p>'
+      + details("YARA rule DarkSide_OU", '<pre class="code">import "hash"\nimport "pe"\nimport "math"\nrule DarkSide_OU {\n  meta:\n    description = "DarkSide ransomware x86 DLL: exact SHA-256, or structural fingerprint"\n    date = "2026-11-20"\n  condition:\n    hash.sha256(0, filesize) == "156335b95ba216456f1ac0894b7b9d6ad95404ac7df447940f21646ca0090673" or\n    ( uint16(0) == 0x5A4D and pe.is_dll() and pe.machine == pe.MACHINE_I386 and\n      pe.imphash() == "6c8408bb5d7d5a5b75b9314f94e68763" and\n      for any s in pe.sections : ( s.name == ".text1" ) and\n      for any s in pe.sections : ( s.name == ".ndata" and math.entropy(s.raw_data_offset, s.raw_data_size) &gt; 7.5 ) )\n}</pre>')
+      + '<p>' + st("lim") + 'The rule has not yet been tested. The test run against a clean file and a positive control is still to be done.</p>'))
+    S.append(("recs", "Recommendations",
+      table(["#", "Action", "Category"], [["1", "Block baroquetees[.]com and rumahsia[.]com at DNS, proxy and firewall, and retro-hunt logs", "Prevent"], ["2", "Deploy the YARA rule plus the Elastic and McAfee ATR DarkSide rules to EDR", "Detect"],
+        ["3", "Hunt for rundll32.exe loading DLLs from Temp or ProgramData, README.*.TXT files and mass renames to an 8-hex extension", "Detect"], ["4", "Isolate and reimage confirmed hits, restore from offline backups, and check for data theft before restoring", "Respond"],
+        ["5", "MFA and password-spray detection on VPN, patching of internet-facing systems, restricted RDP", "Prevent"], ["6", "Train staff to spot phishing links", "Prevent"]])))
+    S.append(("limits", "Limitations and open items",
+      findings([("lim", "<strong>Draft status.</strong> Version 1.0, awaiting peer review. The reviewer is not yet named."), ("lim", "<strong>MISP search</strong> results are still to be added."), ("lim", "<strong>MalwareBazaar</strong> record and family tag are still to be checked."),
+                ("lim", "<strong>YARA test results</strong> are not yet recorded."), ("lim", "<strong>Recent reporting.</strong> The newest source found is from April 2022, and a check for 2025 to 2026 reporting is still to be done."),
+                ("lim", "<strong>Static analysis rests on VirusTotal metadata.</strong> The sample itself was not downloaded or detonated by the analyst.")])))
+    S.append(("skills", "Skills demonstrated", SK(["Threat intelligence reporting", "Malware triage", "Static analysis from metadata", "MITRE ATT&CK mapping", "IOC handling and defanging", "YARA rule design", "Confidence language", "Prioritised recommendations"])))
+    S.append(("takeaway", "Final takeaway", '<div class="takeaway"><p>A good threat profile says what is known, what is reported and what is still open.</p><small>The sample is clearly DarkSide. What the profile adds is a split between what this file shows and what the wider campaign is reported to do, with confidence stated at each step and the unfinished work listed.</small></div>'))
+    return case_page("darkside-threat-profile", "DarkSide ransomware threat profile", "DarkSide Ransomware Threat Profile",
+        "Training-exercise threat profile of a DarkSide ransomware DLL: classification, lifecycle, static analysis, indicators, ATT&CK mapping and detection.",
+        "SOC-01", "A cyber threat intelligence profile of a 32-bit ransomware DLL, with indicators, ATT&CK mapping and detection guidance.", TRN + '<span class="badge">Threat intelligence</span><span class="badge">Draft v1.0</span>', hero, S, 0, "soc")
+
+def nginx():
+    hero = _hero_art(svgs.vuln_card(), "Illustration", "Lab environment")
+    S = []
+    S.append(("intro", "Project introduction",
+      '<p>A vulnerability management exercise on a lab server. A baseline OpenVAS scan rated the highest finding on the target at 9.8 (Critical), and the nginx findings were version-based. The task was to upgrade nginx from 1.15.5 to 1.30.4 with an Ansible playbook, prove it worked, and make sure it could be undone.</p>'
+      '<div class="note-box"><b>Lab exercise</b>Carried out as part of a team exercise (Team A) on a lab server that other team members also scanned. The server address, account names and key material are withheld on this page.</div>'))
+    S.append(("overview", "Project overview",
+      kv([("Role", "Consultant on the nginx finding, Team A"), ("Date", "11 November 2026 (baseline scan on 5 November 2026)"), ("Target", "nginx 1.15.5, source-built under /usr/local/nginx, on an Ubuntu server"),
+          ("Tooling", "Ansible core 2.20.1, OpenVAS / Greenbone, nginx, curl, nano"), ("Goal", "Upgrade to nginx 1.30.4, verify, and keep a tested rollback")])
+      + stats([("1.15.5 → 1.30.4", "nginx version", "te"), ("ok=19 · changed=5", "play recap", ""), ("failed=0", "play recap", "te"), ("9.8 → 0.0", "nginx severity in the re-scan", "am")])))
+    S.append(("method", "Approach",
+      panel("Remediation workflow", "Reconstruction", '<div class="dscroll">' + svgs.ansible_flow() + '</div>', "Workflow reconstructed from the report. Not an original screenshot.", True)
+      + flow([("Prepare", "Confirmed Ansible core 2.20.1, wrote ansible.cfg and a local inventory, and proved the setup with an ansible ping that returned pong."),
+              ("Write the playbook", "patch_nginx.yml reads the installed version with nginx -V, removes old bundled-library build options, compares the version with the target, prints a plan, upgrades, then confirms the version and that the site responds."),
+              ("Test first", "A syntax check passed. A dry run with --check reported current 1.15.5, target 1.30.4 and upgrade needed."),
+              ("Patch", "The real run ended with ok=19, changed=5, unreachable=0, failed=0 and the message SUCCESS: nginx upgraded to 1.30.4."),
+              ("Verify and re-scan", "nginx -v and a curl header check confirmed the new version, then a fresh Greenbone scan checked the result.")])
+      + '<p>The version check makes the playbook safe to run repeatedly, because it changes nothing when the target version is already installed.</p>'))
+    S.append(("evidence", "Evidence",
+      gallery([("vuln-patch-playbook", "Exhibit NGX-01", "The first part of patch_nginx.yml in the editor: variables and version-check tasks.", "Terminal editor showing the first part of an Ansible playbook for patching nginx"),
+               ("vuln-patch-verification", "Exhibit NGX-02", "End of the real run: SUCCESS message and play recap with ok=19, changed=5, failed=0.", "Terminal output showing the Ansible success message and a play recap with no failures")], True)))
+    S.append(("rollback", "Rollback playbook",
+      '<p>Because the lab was shared, a second playbook, rollback_nginx.yml, restores the vulnerable 1.15.5 binary from the backup that the patch playbook creates. It stops if no backup exists. A dry run showed current 1.30.4, rollback to 1.15.5, rollback needed and backup found. The real run stopped nginx, restored the old binary, started nginx and ended with ROLLED BACK: nginx is 1.15.5 again.</p>'
+      + gallery([("vuln-rollback-run", "Exhibit NGX-03", "Real rollback run: nginx stopped, old binary restored, started again and 1.15.5 confirmed.", "Terminal output showing nginx being stopped, the old binary restored and nginx started again")])
+      + '<p>The lab was reset to 1.15.5 this way, a fresh baseline was captured, and the patch was applied again to collect the final evidence. That second run also ended with ok=19, changed=5, failed=0. A curl header check returned HTTP 200 with a Server header of nginx/1.30.4.</p>'))
+    S.append(("verify", "Verification with OpenVAS",
+      '<p>A new Greenbone scan after the patch finished with status Done, dated 11 November 2026, 22:00 UTC. The task still showed 9.8 (Critical), so the report was opened to find out why.</p>'
+      + findings([("conf", "<strong>The 9.8 is not nginx.</strong> It is an Apache Tomcat AJP finding (Ghostcat) on port 8009, a different service outside Team A\'s scope of nginx on port 80."),
+                  ("conf", "<strong>nginx 1.30.4 is detected with no vulnerability raised.</strong> Both nginx entries in the Applications tab are at severity 0.0 (Log)."),
+                  ("int", "<strong>Why the task score stayed high.</strong> Greenbone reports the highest score for the whole host, and the scan used the All IANA assigned TCP port list.")])
+      + gallery([("vuln-openvas-applications", "Exhibit NGX-04", "Applications tab of the post-patch report with nginx 1.30.4 at 0.0 (Log). Top bar and report details cropped.", "Greenbone report Applications tab listing detected applications with severity 0.0")], True)
+      + '<p>The Tomcat finding was recorded as out of scope, for the service owner to handle.</p>'))
+    S.append(("issues", "Issues and lessons learned",
+      table(["Issue", "Cause", "Fix"], [["Playbook could not be found", "A mistyped command that also created a stray file named --check", "Listed the folder, then re-ran with the correct file name"], ["Risk of a failed upgrade", "Upgrading a source-built service replaces the running binary", "Dry run, a backup before changes and a tested rollback"], ["Scan still showed 9.8", "The finding belonged to Tomcat, not nginx", "Opened the report, filtered by nginx, and recorded the Tomcat finding as out of scope"]])
+      + '<p style="margin-top:14px">Testing with a syntax check and --check before a real run catches mistakes safely, a built-in version check makes a playbook repeatable, and a rollback plan should be tested before it is needed.</p>'))
+    S.append(("recs", "Recommendations",
+      findings([("int", "<strong>Inventory and flag end-of-life software</strong>, such as nginx 1.15.5."), ("int", "<strong>Re-scan after every change</strong> to prove the fix."), ("int", "<strong>Keep remediation in Ansible</strong>, so the same fix can be applied across servers."), ("int", "<strong>Hide the version</strong> in banners with server_tokens off;.")])))
+    S.append(("limits", "Limitations",
+      findings([("lim", "<strong>Lab environment.</strong> A team exercise, not a production change with a change-approval process."), ("lim", "<strong>Single finding.</strong> The scope was nginx on port 80. Other findings, including the Tomcat one, were not remediated."),
+                ("lim", "<strong>Scanner evidence only.</strong> Closure rests on the Greenbone re-scan and a version check, with no separate penetration test.")])))
+    S.append(("skills", "Skills demonstrated", SK(["Vulnerability scanning (OpenVAS / Greenbone)", "Ansible playbooks", "Dry runs and syntax checks", "Backup and rollback planning", "Patch verification", "Scan result triage", "Remediation reporting"])))
+    S.append(("takeaway", "Final takeaway", '<div class="takeaway"><p>A fix is not finished until a re-scan agrees, and a patch is not safe until it can be undone.</p><small>The nginx finding closed, the site stayed online, and the one remaining Critical result was correctly traced to a different service rather than being mistaken for a failed patch.</small></div>'))
+    return case_page("nginx-ansible-remediation", "Remediating nginx with Ansible", "nginx Remediation with Ansible",
+        "Lab vulnerability management: upgrading nginx 1.15.5 to 1.30.4 with Ansible, a tested rollback playbook, and verification with an OpenVAS re-scan.",
+        "SOC-02", "Upgrading a vulnerable web server with a tested, reversible playbook, then proving the result with a re-scan.", TRN + '<span class="badge">Vulnerability management</span>', hero, S, 1, "soc")
+
+def phish():
+    hero = _hero_art(svgs.phish_card(), "Illustration", "Training sample")
+    S = []
+    S.append(("intro", "Project introduction",
+      '<p>An email claiming to be from the supplier MedEquip Solutions reached the Accounts Payable mailbox of MediSure Health Network on Monday 9 September 2024 at 07:14 UTC. It said Invoice #MSH-2024-0912 was past due and demanded $18,740.00 within 24 hours, with a threat to halt medical supply delivery.</p>'
+      '<p>The message was examined as a SOC case-study exercise and classified as malicious invoice fraud (business email compromise).</p>'
+      '<div class="note-box"><b>Training sample</b>The domains, addresses and hash are fabricated indicators. Reputation lookups such as MXToolbox, VirusTotal and AbuseIPDB were deliberately not used, because they do not apply to made-up indicators.</div>'))
+    S.append(("overview", "Case overview",
+      kv([("Classification", "Malicious: invoice fraud / BEC phishing"), ("Target", "Accounts Payable mailbox, MediSure Health Network (fictional)"), ("Impersonated vendor", "MedEquip Solutions (fictional)"), ("Method", "Manual inspection of raw .eml headers and MIME structure, base64 decoding and SHA-256 hashing of the attachment")])
+      + stats([("$18,740", "requested within 24 h", "am"), ("3", "sender identities", "te"), ("2", "credential-harvesting links", ""), ("3", "authentication checks failed or absent", "am")])))
+    S.append(("headers", "Header and authentication analysis",
+      '<p>The only Received header names mail.medequip-invoices.com at 192.168.0.50, a private (RFC 1918) address. A legitimate internet sender cannot present a private address to a public mail server, which points to an incomplete or falsified header chain. With a single hop there is no relay path to follow and no IP reputation to check.</p>'
+      + table(["Check", "Result", "Meaning"], [["SPF", ("fail", "n"), "The sending IP is not authorised for medequip-invoices.com, and that domain differs from the visible From domain, so it would not align even on a pass."], ["DKIM", ("none", "n"), "The message is unsigned, so origin and integrity cannot be verified."], ["DMARC", ("fail, action=quarantine", "n"), "The visible From domain failed authentication and alignment, and the published policy calls for quarantine."]])
+      + '<p style="margin-top:14px">Analogy: SPF is the guest list at the door, DKIM is the signature on a letter, and DMARC is the host\'s instruction for what to do when either check fails.</p>'
+      + gallery([("phish-received-auth-headers", "Exhibit INV-01", "Received and authentication headers from the raw .eml, highlighted.", "Raw email headers with the received and authentication results highlighted")], True)
+      + '<p>' + st("lim") + 'The headers record the DMARC disposition but do not show what the gateway actually did with the message, so the message trace should be checked to confirm it was held.</p>'))
+    S.append(("identity", "Sender identity",
+      panel("Sender identity", "Illustration", '<div class="dscroll">' + svgs.phish_flow() + '</div>', "Three different identities in one message.", True)
+      + table(["Header", "Value"], [["From", "billing@medequip-solutions.com, the vendor identity shown to the reader"], ["Return-Path / Message-ID", "medequip-invoices.com, the lookalike domain that actually sent it"], ["Reply-To", "A free-mail address that diverts replies away from the vendor domain"]])
+      + '<p style="margin-top:14px">The X-Mailer header shows PHPMailer 6.1.2, a general-purpose PHP mailing library often used by bulk and phishing mailers, rather than a billing system. The message is flagged X-Priority 1 to add urgency, and the Message-ID contains the string acctrecovery, echoing the Reply-To address.</p>'
+      + gallery([("phish-sender-identity", "Exhibit INV-02", "Sender-related headers from the raw .eml.", "Raw email headers showing the From, Reply-To and mailer fields")], True)))
+    S.append(("links", "Links, tracking pixel and attachment",
+      findings([("conf", "<strong>Link mismatch.</strong> The HTML Review &amp; Pay Invoice button and the plain-text link point to two unrelated registrable domains. Both put the vendor name in a subdomain to look familiar."),
+                ("conf", "<strong>Tracking pixel.</strong> A hidden 1x1 image loaded over plain HTTP reports when the email is opened, telling the sender the mailbox is active."),
+                ("conf", "<strong>Disguised attachment.</strong> The body promises a PDF, but the file is Invoice_MSH-2024-0912.html containing only a script block. This matches the HTML-smuggling pattern. In this sample the script is a placeholder with no executable content.")])
+      + gallery([("phish-links-pixel-attachment", "Exhibit INV-03", "Links, hidden pixel and attachment from the .eml (defanged).", "Email source showing two phishing links, a hidden tracking pixel and an HTML attachment")], True)))
+    S.append(("time", "Timestamp analysis",
+      '<p>The Date header (07:14:50) and the receipt time (07:14:52) are in the correct order, so the header timestamps show no anomaly. The content is less consistent: it says accounts more than 30 days past due face suspension, yet the invoice was due on 7 September 2024, only two days before the email arrived.</p>'))
+    S.append(("verdict", "Justification",
+      '<p>This is an attempt at fraudulent vendor invoice spoofing. The basis is a private originating IP, a lookalike sending domain, SPF, DKIM and DMARC failures, a free-mail Reply-To, two distinct credential-harvesting links, a tracking pixel, an HTML attachment shown as a PDF, scripted mailer tooling, an overdue claim that contradicts its own dates, urgency, and threats aimed at a healthcare supply chain.</p>'))
+    S.append(("iocs", "Indicators of compromise",
+      table(["Type", "Indicator (defanged)"], [["Domain", "medequip-invoices[.]com"], ["Domain", "thebandalisty[.]com"], ["Domain", "secure-invoicepay[.]com"], ["Email", "medequip.accounts.recovery@gmail[.]com"],
+        ["URL", "hxxps://medequip-billing-review[.]secure-invoicepay[.]com/login?ref=MSH20240912"], ["URL", "hxxps://medequip-billing-review[.]thebandalisty[.]com/login?ref=MSH20240912"], ["URL", "hxxp://thebandalisty[.]com/o/MSH20240912.gif (tracking pixel)"],
+        ["File", "Invoice_MSH-2024-0912.html"], ["SHA-256", "0bf21e8fa749d22699d9333ef244710492a689e15c5ea3f34537c64c319f575c"], ["Spoofed identity", "billing@medequip-solutions[.]com (confirm with MedEquip before blocking the vendor\'s real domain)"]])))
+    S.append(("recs", "Recommendations",
+      findings([("int", "<strong>Payment controls.</strong> Verify urgent invoices and bank-detail changes by phone using contact details already on file, and require dual approval."),
+                ("int", "<strong>Email security.</strong> Apply SPF, DKIM and DMARC results consistently, enable impersonation protection for key vendor domains, tag external senders and flag Reply-To mismatches."),
+                ("int", "<strong>Attachments and links.</strong> Block or sandbox external HTML attachments, enable time-of-click URL scanning and block remote images by default."),
+                ("int", "<strong>Training.</strong> Invoice-fraud awareness and phishing simulations for finance and procurement staff."),
+                ("int", "<strong>Response.</strong> Block the indicators, search mailboxes for related messages and remove them, review proxy and DNS logs, reset credentials for anyone who entered them, and notify MedEquip.")])))
+    S.append(("limits", "Limitations",
+      findings([("lim", "<strong>Training sample.</strong> Indicators are fabricated, so no reputation or threat-intelligence checks were possible."), ("lim", "<strong>Single hop.</strong> No relay path exists to trace."), ("lim", "<strong>Gateway action unconfirmed.</strong> The message trace is needed to confirm quarantine.")])))
+    S.append(("skills", "Skills demonstrated", SK(["Email header analysis", "SPF, DKIM and DMARC interpretation", "Phishing triage", "MIME and attachment inspection", "IOC extraction and defanging", "Business email compromise recognition", "Response recommendations"])))
+    S.append(("takeaway", "Final takeaway", '<div class="takeaway"><p>Authentication results should have stopped this message, but the headers alone do not prove they did.</p><small>Attackers register new lookalike domains cheaply, which is why payment verification, impersonation protection and finance-focused training are needed alongside SPF, DKIM and DMARC.</small></div>'))
+    return case_page("invoice-fraud-phishing-analysis", "Invoice fraud phishing analysis", "Invoice Fraud Phishing Analysis",
+        "SOC case-study exercise: analysing a business email compromise invoice message, with header and authentication analysis, indicators and response recommendations.",
+        "SOC-03", "Triage of a suspected invoice-fraud email: headers, authentication, sender identity, links, attachment and response.", TRN + '<span class="badge">Email analysis</span>', hero, S, 2, "soc")
+
+ALL = [alexa, raid, snap, ucb, darkside, nginx, phish]

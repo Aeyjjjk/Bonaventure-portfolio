@@ -374,3 +374,57 @@ td.y{color:var(--teal)}td.n{color:var(--fg2);opacity:.75}td.p{color:var(--amber)
 @media(max-width:900px){.hero-grid,.about,.intro,.contact,.sec-head,.cs-hero-grid,.cards,.skillgrid,.foot{column-gap:0}}
 .panel,.shot,.tbl,.kv,.stats{min-width:0;max-width:100%}
 @media(max-width:520px){.scene .tag{font-size:9.5px;padding:3px 6px}.scene .tag:nth-of-type(3){display:none}.scene .tag:nth-of-type(4){left:11%;right:auto;bottom:20%}}
+
+/* ---- role switching ---- */
+.rr[data-role="forensics"] [data-for]:not([data-for~="forensics"]),
+.rr[data-role="soc"] [data-for]:not([data-for~="soc"]),
+.rr[data-role="electrical"] [data-for]:not([data-for~="electrical"]){display:none!important}
+.rs{display:inline-flex;border:1px solid var(--line);background:var(--bg2)}
+.rs button{min-height:40px;padding:0 14px;background:none;border:0;border-right:1px solid var(--line);color:var(--fg2);font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.rs button:last-child{border-right:0}
+.rs button:hover{color:var(--fg)}
+.rs button[aria-pressed="true"]{background:var(--teal);color:var(--ink)}
+.rs .s{display:none}
+.rs-head{margin-left:auto}
+.rs-head button{min-height:34px;padding:0 10px;font-size:11px}
+.rs-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-bottom:28px}
+.rs-m{display:none}
+@media(max-width:1180px){.rs-head{display:none}}
+@media(max-width:900px){.nav ul .rs-m{display:block;padding:14px 0}.rs-menu{display:flex}.rs-menu button{flex:1;padding:0 6px}}
+@media(max-width:520px){.rs-hero{display:flex;width:100%}.rs-hero button{flex:1;padding:0 4px;font-size:11px}.rs-hero .l{display:none}.rs-hero .s{display:inline}.rs-menu .l{display:none}.rs-menu .s{display:inline}}
+.nav .cvl{display:inline-flex;align-items:center;gap:8px;color:var(--teal);padding:16px 0}
+.nav .cvl svg,.foot .cvl svg{width:15px;height:15px}
+.foot .cvl{color:inherit}
+.brand span[data-for]{display:block}
+/* hero portrait */
+.pscene{position:relative;aspect-ratio:4/5;border:1px solid var(--line);background:var(--bg2);overflow:hidden;max-width:520px;margin-inline:auto}
+.pframe{position:absolute;inset:8%;border:1px dashed var(--fg2);background:linear-gradient(180deg,#0d1730,#0a1224);display:grid;place-items:center;overflow:hidden}
+.pframe.has{border:1px solid var(--amber)}
+.pmsg{display:grid;justify-items:center;gap:6px;color:var(--fg2);text-align:center;padding:16px}
+.pmsg .sil{width:46%;max-width:150px;opacity:.7}
+.pmsg span{font:500 12px/1.4 var(--f-mono);letter-spacing:.12em;text-transform:uppercase}
+.pmsg small{font:400 11px/1.4 var(--f-mono);color:var(--fg2);opacity:.8}
+.pframe.has .pmsg{display:none}
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pimg[hidden]{display:none}
+.cm{position:absolute;width:18px;height:18px;border:2px solid var(--amber)}
+.cm.a{left:5%;top:5%;border-right:0;border-bottom:0}.cm.b{right:5%;top:5%;border-left:0;border-bottom:0}.cm.c{left:5%;bottom:5%;border-right:0;border-top:0}.cm.d{right:5%;bottom:5%;border-left:0;border-top:0}
+.pscene .tag{z-index:2}
+.portrait .frame{position:relative;overflow:hidden}
+.portrait .frame.has{border-style:solid}
+.portrait .frame.has>span{display:none}
+.hero-roles{display:block}
+.hero-roles h1{font-size:clamp(44px,7.6vw,104px);font-weight:700;letter-spacing:-.035em;text-transform:uppercase;line-height:.95}
+.hero-roles h1 em{font-style:normal;color:var(--teal)}
+.hero-roles .lede{font-size:clamp(17px,1.5vw,20px);color:var(--fg2);margin:28px 0 36px;max-width:56ch}
+.hero-roles [data-for]>*{animation:rise .5s cubic-bezier(.2,.7,.2,1) backwards}
+/* experience cards */
+.card.ec{grid-column:span 6;cursor:default}
+.card.ec:hover{transform:none;border-color:var(--line)}
+.card.ec .thumb{aspect-ratio:16/8}
+.ecl{margin:0;padding-left:18px;color:var(--fg2);font-size:15px}.ecl li{margin:6px 0}
+.card .when{font:500 12px/1.5 var(--f-mono);letter-spacing:.06em;color:var(--fg2)!important}
+@media(max-width:960px){.card.ec{grid-column:1/-1}}
+pre.code{background:var(--ink);border:1px solid var(--line);padding:16px;overflow-x:auto;font:400 12.5px/1.55 var(--f-mono);color:var(--fg);margin:0}
+.intro>.pillars{grid-column:1/-1}
+.btn{white-space:nowrap}

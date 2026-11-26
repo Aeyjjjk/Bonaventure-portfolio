@@ -224,3 +224,97 @@ def uc_activity():
         s += f'<circle cx="{x}" cy="100" r="7" fill="{BG}" stroke="{c}" stroke-width="2"/>' + txt(x, 80 if i % 2 == 0 else 134, a, 11.5, FG, "middle", 500)
     s += txt(60, 180, "Order of the scripted session as described in the report. These are scenario steps, not recovered timestamps.", 11, A, "start", 500)
     return _svg(W, H, s, "Scripted browsing sequence: seven normal-mode sites followed by one private-mode search")
+
+# ---------- SOC projects: card art ----------
+def dark_card():
+    inner = grid(480, 300)
+    inner += rect(60, 40, 170, 200, T, CARD, 1.5) + txt(145, 62, "32-bit DLL", 11, T, "middle", 500, 1.2)
+    for j, (n, e, c) in enumerate((( ".text", 6.09, L), (".text1", 5.13, L), (".rdata", 3.22, L), (".data", 7.71, A), (".ndata", 7.94, A))):
+        y = 76 + j * 30
+        inner += rect(72, y, 146, 22, c, BG) + txt(80, y + 15, n, 10.5, FG, "start", 500) + txt(210, y + 15, f"{e:.2f}", 10, c if c == A else F2, "end")
+    inner += txt(145, 232, "SECTION ENTROPY", 9, F2, "middle", 400, 1.2)
+    inner += arrow(232, 140, 290, 140, A)
+    inner += rect(296, 96, 130, 88, A, CARD, 1.5) + txt(361, 126, "README.[ID].TXT", 10.5, A, "middle", 500) + txt(361, 146, "file.[ID]", 10.5, F2, "middle") + txt(361, 166, "T1486", 10.5, T, "middle", 500)
+    inner += txt(24, 285, "ILLUSTRATION · NOT A SAMPLE VIEW", 10, F2, "start", 500, 1.5)
+    return _svg(480, 300, inner, "Illustration: a packed DLL with high-entropy sections leading to a ransom note and renamed files", "")
+
+def vuln_card():
+    inner = grid(480, 300)
+    inner += rect(40, 50, 150, 70, A, CARD, 1.5) + txt(115, 78, "nginx", 11, F2, "middle") + txt(115, 104, "1.15.5", 22, A, "middle", 600)
+    inner += rect(290, 50, 150, 70, T, CARD, 1.5) + txt(365, 78, "nginx", 11, F2, "middle") + txt(365, 104, "1.30.4", 22, T, "middle", 600)
+    inner += arrow(192, 85, 288, 85, T) + txt(240, 76, "Ansible", 10, T, "middle", 500)
+    inner += line(290, 112, 192, 112, F2, 1, "3 3") + txt(240, 128, "rollback", 9.5, F2, "middle")
+    inner += txt(40, 168, "OPENVAS · HIGHEST FINDING", 9.5, F2, "start", 500, 1.2)
+    inner += rect(40, 176, 400, 16, L, BG) + rect(40, 176, 392, 16, A, A) 
+    inner += txt(40, 214, "BASELINE  9.8", 10.5, A, "start", 500) 
+    inner += rect(40, 226, 400, 16, L, BG) + rect(40, 226, 3, 16, T, T) 
+    inner += txt(40, 262, "nginx 1.30.4  0.0 (Log)", 10.5, T, "start", 500)
+    inner += txt(456, 283, "ILLUSTRATION", 9.5, F2, "end", 500, 1.5)
+    return _svg(480, 300, inner, "Illustration: nginx upgraded from 1.15.5 to 1.30.4 with a rollback path, and the severity falling from 9.8 to 0.0 for nginx", "")
+
+def phish_card():
+    inner = grid(480, 300)
+    inner += rect(60, 40, 360, 190, T, CARD, 1.5) + line(60, 40, 240, 150, L) + line(420, 40, 240, 150, L)
+    for j, (k, v, c) in enumerate((("From", "medequip-solutions", F2), ("Return-Path", "medequip-invoices", A), ("Reply-To", "free-mail address", A))):
+        y = 160 + j * 22
+        inner += txt(80, y, k, 10.5, F2, "start", 500, 1) + txt(400, y, v, 10.5, c, "end", 500)
+    for j, (k, c) in enumerate((("SPF fail", A), ("DKIM none", A), ("DMARC fail", A))):
+        inner += rect(88 + j * 110, 244, 100, 22, c, BG) + txt(138 + j * 110, 259, k, 10, c, "middle", 500)
+    inner += txt(24, 289, "ILLUSTRATION · THREE SENDER IDENTITIES", 10, F2, "start", 500, 1.5)
+    return _svg(480, 300, inner, "Illustration: an envelope with three different sender identities and failed SPF, DKIM and DMARC checks", "")
+
+# ---------- SOC projects: case diagrams ----------
+def dark_lifecycle():
+    stages = [("Initial access", "Varies by affiliate", "Reported", F2), ("Execution", "rundll32.exe loads DLL", "Observed", T), ("Persistence", "None seen in sandbox", "Not seen", F2),
+              ("Command & control", "2 domains (Moderate)", "Rule-based", A), ("Impact", "Encrypt, rename, note", "Observed", T)]
+    inner = ""
+    for i, (a, b, c, col) in enumerate(stages):
+        x = 12 + i * 150
+        inner += rect(x, 40, 134, 96, col, CARD, 1.5) + txt(x + 67, 66, a, 11.5, FG, "middle", 600) + txt(x + 67, 92, b, 9.5, F2, "middle") + txt(x + 67, 122, c.upper(), 9.5, col, "middle", 500, 1.2)
+        if i < 4: inner += arrow(x + 134, 88, x + 150, 88, F2)
+    inner += txt(12, 24, "ATTACK LIFECYCLE · STAGES AS EVIDENCED IN THE REPORT", 10, F2, "start", 500, 1.2)
+    inner += txt(12, 166, "Reported = from published reports on DarkSide, not visible in this sample.", 10, F2) + txt(12, 184, "Observed = seen in sandbox data for the assigned sample.", 10, F2)
+    return _svg(760, 200, inner, "Diagram: DarkSide attack lifecycle stages and how each is evidenced")
+
+def ansible_flow():
+    steps = [("Baseline", "OpenVAS scan"), ("Syntax check", "no errors"), ("Dry run", "--check"), ("Backup", "old binary kept"), ("Patch", "1.15.5 to 1.30.4"), ("Verify", "curl + version"), ("Re-scan", "Greenbone")]
+    inner = ""
+    for i, (a, b) in enumerate(steps):
+        x = 8 + i * 106
+        col = A if i in (0,) else (T if i >= 4 else F2)
+        inner += rect(x, 40, 94, 70, col, CARD, 1.5) + txt(x + 47, 68, a, 11, FG, "middle", 600) + txt(x + 47, 90, b, 9, F2, "middle")
+        if i < 6: inner += arrow(x + 94, 75, x + 106, 75, F2)
+    inner += line(8 + 4 * 106 + 47, 112, 8 + 4 * 106 + 47, 146, A, 1.2, "4 3") + line(8 + 3 * 106 + 47, 146, 8 + 4 * 106 + 47, 146, A, 1.2, "4 3") + line(8 + 3 * 106 + 47, 146, 8 + 3 * 106 + 47, 112, A, 1.2, "4 3")
+    inner += txt(8 + 3 * 106 + 47, 166, "rollback_nginx.yml restores the backup", 10, A, "middle", 500)
+    inner += txt(8, 24, "REMEDIATION WORKFLOW · RECONSTRUCTED FROM THE REPORT", 10, F2, "start", 500, 1.2)
+    return _svg(760, 184, inner, "Diagram: remediation workflow from baseline scan through dry run, backup, patch, verification and re-scan, with a rollback path")
+
+def phish_flow():
+    inner = txt(8, 20, "WHAT THE READER SEES VS WHAT SENT IT", 10, F2, "start", 500, 1.2)
+    inner += rect(8, 34, 220, 90, F2, CARD, 1.2) + txt(118, 56, "Visible sender", 10, F2, "middle", 500, 1) + txt(118, 84, "billing@", 11.5, FG, "middle", 500) + txt(118, 102, "medequip-solutions.com", 11.5, FG, "middle", 500)
+    inner += rect(270, 34, 220, 90, A, CARD, 1.5) + txt(380, 56, "Actual sending domain", 10, A, "middle", 500, 1) + txt(380, 84, "Return-Path, Message-ID:", 10.5, F2, "middle") + txt(380, 102, "medequip-invoices.com", 11.5, A, "middle", 500)
+    inner += rect(532, 34, 220, 90, A, CARD, 1.5) + txt(642, 56, "Replies go to", 10, A, "middle", 500, 1) + txt(642, 84, "free-mail address", 11.5, A, "middle", 500) + txt(642, 102, "(not the vendor domain)", 10, F2, "middle")
+    inner += arrow(228, 79, 268, 79, F2) + arrow(490, 79, 530, 79, F2)
+    inner += txt(8, 150, "Both links place the vendor name in a subdomain of an unrelated registrable domain, and the two links differ from each other.", 10.5, F2)
+    return _svg(760, 170, inner, "Diagram: the visible sender, the actual sending domain and the reply address are three different identities")
+
+# ---------- electrical experience card art ----------
+def tower_card():
+    inner = grid(480, 300)
+    inner += line(240, 40, 150, 250, T, 1.5) + line(240, 40, 330, 250, T, 1.5) + line(190, 150, 290, 150, T, 1.2) + line(205, 110, 275, 110, T, 1.2) + line(170, 200, 310, 200, T, 1.2)
+    inner += line(150, 250, 330, 250, T, 1.5) + line(190, 150, 290, 250, L) + line(290, 150, 190, 250, L)
+    for y in (110, 150):
+        inner += line(205 if y == 110 else 190, y, 20, y + 30, A, 1) + line(275 if y == 110 else 290, y, 460, y + 30, A, 1)
+    inner += txt(24, 285, "ILLUSTRATION · TRANSMISSION LINE", 10, F2, "start", 500, 1.5)
+    return _svg(480, 300, inner, "Illustration: a transmission tower with conductors", "")
+
+def wiring_card():
+    inner = grid(480, 300)
+    inner += rect(60, 60, 110, 70, T, CARD, 1.5) + txt(115, 100, "Supply", 11, FG, "middle", 500)
+    inner += rect(190, 60, 110, 70, A, CARD, 1.5) + txt(245, 90, "Transformer", 11, FG, "middle", 500) + txt(245, 108, "500 kVA", 10, A, "middle")
+    inner += rect(320, 60, 110, 70, T, CARD, 1.5) + txt(375, 100, "Distribution", 11, FG, "middle", 500)
+    inner += arrow(170, 95, 188, 95, F2) + arrow(300, 95, 318, 95, F2)
+    for j in range(4):
+        inner += line(375, 130, 90 + j * 100, 200, L) + rect(60 + j * 100, 200, 60, 34, L, BG) + txt(90 + j * 100, 221, ("Circuit", "Circuit", "Circuit", "Circuit")[j], 9.5, F2, "middle")
+    inner += txt(24, 285, "ILLUSTRATION · INSTALLATION", 10, F2, "start", 500, 1.5)
+    return _svg(480, 300, inner, "Illustration: supply, transformer and distribution to circuits", "")

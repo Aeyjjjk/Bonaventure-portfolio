@@ -54,6 +54,10 @@ def switcher(cls):
     b = "".join(f'<button type="button" data-role-btn="{r}" aria-pressed="{"true" if r == "forensics" else "false"}"><span class="l">{full}</span><span class="s">{short}</span></button>' for r, full, short in SWITCH)
     return f'<div class="{cls}" role="group" aria-label="Choose a profile view">{b}</div>'
 
+THEME_BTN = ('<button class="theme-btn" type="button" aria-label="Switch between dark and light mode" aria-pressed="false">'
+ '<svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 14.5A8 8 0 019.500 4 8 8 0 1020 14.500z"/></svg>'
+ '<svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></button>')
+
 def nav(prefix, current=None):
     p = prefix
     lab = lambda a, b, c: (f'<span data-for="forensics">{a}</span><span data-for="soc">{b}</span><span data-for="electrical">{c}</span>')
@@ -68,6 +72,7 @@ def nav(prefix, current=None):
 <ul id="navlist">{li}</ul>
 {switcher("rs rs-head")}
 {cvlinks("btn sm cv")}
+{THEME_BTN}
 <button class="menu-btn" type="button" aria-expanded="false" aria-controls="navlist" aria-label="Menu"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h18M3 12h18M3 17h18"/></svg></button>
 </div></header>'''
 

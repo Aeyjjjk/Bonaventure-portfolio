@@ -53,6 +53,17 @@ $$('.mw').forEach(function(w){
   sel(0);
 });
 
+/* theme toggle */
+var tbtn=$('.theme-btn'),de=document.documentElement;
+function setTheme(t,save){
+  if(t==='light')de.setAttribute('data-theme','light');else de.setAttribute('data-theme','dark');
+  if(tbtn)tbtn.setAttribute('aria-pressed',t==='light');
+  if(save){try{localStorage.setItem('pf-theme',t);}catch(e){}}
+}
+var th='dark';try{th=localStorage.getItem('pf-theme')||(de.getAttribute('data-theme')==='light'?'light':'dark');}catch(e){}
+setTheme(th,false);
+if(tbtn)tbtn.addEventListener('click',function(){setTheme(de.getAttribute('data-theme')==='light'?'dark':'light',true);});
+
 /* role switcher */
 var root=$('.rr'),ROLES=['electrical','forensics','soc'];
 function setRole(r,fromUser){

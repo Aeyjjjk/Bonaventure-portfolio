@@ -11,7 +11,7 @@ Static site: plain HTML, CSS and JavaScript. No build step is needed to host it.
   - `sitemap.xml`, `robots.txt`
 - `src/` the generator. `python3 src/build.py` rebuilds `dist/`; `python3 src/cv.py` rebuilds the CV and OG image (needs Playwright).
 
-## Fill the placeholders
+## Fill the placeholders,,
 Search `src/` for: `[YOUR FULL PROFESSIONAL NAME]`, `[PROFESSIONAL EMAIL]`, `[LINKEDIN URL]`, `[GITHUB URL]`, `[LOCATION]`, `[INSTITUTION · DATES]`, `[JOB TITLE]`, and `YOUR-DOMAIN.example` (in `src/lib.py`). Rebuild afterwards.
 Social links currently show a notice instead of navigating. Replace the `href="#" data-soon="..."` links with real URLs.
 
